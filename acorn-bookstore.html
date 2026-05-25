@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>에이콘 도서 — 에이콘출판사</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Noto+Serif+KR:wght@400;600;700&family=Pretendard:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── 토큰 ── */
+:root{
+  --paper:#F5EEE1; --paper-deep:#EBE1CD; --paper-light:#FBF6EC;
+  --ink:#1C2028; --ink-soft:#3A3D45; --ink-mute:#6B6B68;
+  --rule:#D6CDBF; --rule-soft:#E4DECE;
+  --burgundy:#7A1F2B; --burgundy-deep:#5A1520;
+  --gold:#B89B54; --gold-soft:#D4BE85;
+  --forest:#2D4A3A; --forest-lt:#3D6B50;
+  --ocean:#1A6FA8;
+  --serif:'Noto Serif KR',serif;
+  --sans:'Pretendard',-apple-system,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --display:'Fraunces',serif;
+  --radius:10px;
+  --shadow:0 4px 20px rgba(0,0,0,.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:var(--sans)}
+
+/* ── 공통 ── */
+.page{display:none} .page.on{display:block}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* ══════════════════════════
+   HEADER
+══════════════════════════ */
+.hd{background:var(--burgundy-deep);position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.28)}
+.hd-inner{max-width:1140px;margin:0 auto;padding:0 32px;height:58px;display:flex;align-items:center;gap:20px}
+.hd-logo{display:flex;align-items:center;gap:10px;flex-shrink:0;cursor:pointer}
+.hd-mark{width:32px;height:32px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--burgundy-deep)}
+.hd-name{font-family:var(--serif);font-size:15px;font-weight:700;color:#fff}
+.hd-search{flex:1;max-width:400px;position:relative}
+.hd-search input{width:100%;padding:8px 14px 8px 38px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:7px;font-size:13px;color:#fff;outline:none;transition:background .15s}
+.hd-search input::placeholder{color:rgba(255,255,255,.4)}
+.hd-search input:focus{background:rgba(255,255,255,.18)}
+.hd-search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.5}
+.hd-nav{display:flex;gap:4px;margin-left:auto}
+.hd-nav-btn{padding:7px 14px;border-radius:6px;font-size:12.5px;color:rgba(255,255,255,.7);background:none;border:none;transition:all .15s}
+.hd-nav-btn:hover,.hd-nav-btn.on{background:rgba(255,255,255,.1);color:#fff}
+.hd-cart{position:relative}
+.hd-login-btn{display:flex;align-items:center;gap:7px;padding:5px 12px 5px 5px;border-radius:100px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);text-decoration:none;color:rgba(255,255,255,.85);font-size:12.5px;font-weight:500;transition:all .18s;margin-left:4px;cursor:pointer}
+.hd-login-btn:hover{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.35)}
+.hd-login-avatar{width:26px;height:26px;border-radius:50%;background:var(--gold);color:var(--burgundy-deep);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;flex-shrink:0}
+.hd-login-label{letter-spacing:.02em}
+.cart-badge{position:absolute;top:-4px;right:-4px;width:17px;height:17px;background:var(--gold);border-radius:50%;font-size:9px;font-weight:700;color:var(--burgundy-deep);display:flex;align-items:center;justify-content:center;font-family:var(--mono)}
+
+/* ══════════════════════════
+   카테고리 바
+══════════════════════════ */
+.cat-bar{background:var(--paper-deep);border-bottom:1px solid var(--rule)}
+.cat-inner{max-width:1140px;margin:0 auto;padding:0 32px;display:flex;gap:0;overflow-x:auto}
+.cat-btn{padding:11px 18px;font-size:12.5px;font-weight:500;color:var(--ink-mute);white-space:nowrap;background:none;border:none;border-bottom:2.5px solid transparent;transition:all .15s}
+.cat-btn:hover{color:var(--ink)}
+.cat-btn.on{color:var(--burgundy);border-bottom-color:var(--burgundy);font-weight:700}
+
+/* ══════════════════════════
+   도서 목록 페이지
+══════════════════════════ */
+.list-wrap{max-width:1140px;margin:0 auto;padding:32px 32px 60px;display:grid;grid-template-columns:240px 1fr;gap:28px;align-items:start}
+/* 사이드 필터 */
+.filter-panel{background:var(--paper-light);border:1px solid var(--rule);border-radius:var(--radius);padding:20px;position:sticky;top:74px}
+.fp-title{font-family:var(--serif);font-size:13px;font-weight:700;color:var(--ink);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--rule)}
+.fp-group{margin-bottom:18px}
+.fp-group-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:8px}
+.fp-item{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12.5px;color:var(--ink-soft);cursor:pointer;transition:color .12s}
+.fp-item:hover{color:var(--burgundy)}
+.fp-item input[type=checkbox]{accent-color:var(--burgundy);width:13px;height:13px;cursor:pointer}
+.fp-item.on{color:var(--burgundy);font-weight:600}
+/* 도서 그리드 */
+.books-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.books-count{font-size:12.5px;color:var(--ink-mute);font-family:var(--mono)}
+.sort-sel{padding:6px 12px;border:1px solid var(--rule);border-radius:6px;font-size:12.5px;background:var(--paper-light);color:var(--ink);cursor:pointer;outline:none}
+.book-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+/* 도서 카드 */
+.bk-card{background:var(--paper-light);border:1.5px solid var(--rule);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .12s}
+.bk-card:hover{border-color:rgba(122,31,43,.35);box-shadow:var(--shadow);transform:translateY(-2px)}
+.bk-cover{aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;overflow:hidden}
+.bk-format-badges{position:absolute;top:8px;left:8px;display:flex;flex-direction:column;gap:3px}
+.fmt-b{font-size:9.5px;padding:2px 6px;border-radius:3px;font-family:var(--mono);font-weight:600}
+.fmt-b.paper{background:rgba(29,158,117,.85);color:#fff}
+.fmt-b.ebook{background:rgba(26,143,184,.85);color:#fff}
+.fmt-b.audio{background:rgba(184,132,60,.85);color:#fff}
+.fmt-b.lecture{background:rgba(122,31,43,.85);color:#fff}
+.fmt-b.epub{background:rgba(80,50,160,.85);color:#fff}
+.bk-body{padding:12px 13px 14px}
+.bk-cat{font-size:10px;color:var(--burgundy);font-family:var(--mono);font-weight:600;letter-spacing:.05em;margin-bottom:4px}
+.bk-title{font-family:var(--serif);font-size:13px;font-weight:700;color:var(--ink);line-height:1.4;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bk-author{font-size:11.5px;color:var(--ink-mute);margin-bottom:8px}
+.bk-price{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--ink)}
+.bk-price-sub{font-size:10.5px;color:var(--ink-mute);margin-top:2px}
+
+/* ══════════════════════════
+   도서 상세 페이지
+══════════════════════════ */
+.detail-wrap{max-width:1100px;margin:0 auto;padding:32px 32px 60px}
+/* 브레드크럼 */
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-mute);margin-bottom:24px}
+.breadcrumb span{cursor:pointer;transition:color .12s}.breadcrumb span:hover{color:var(--burgundy)}
+.breadcrumb-sep{opacity:.4}
+/* 상단 도서 정보 */
+.detail-top{display:grid;grid-template-columns:220px 1fr;gap:32px;margin-bottom:36px;align-items:start}
+.cover-3d{width:100%;aspect-ratio:3/4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:60px;box-shadow:4px 8px 32px rgba(0,0,0,.22),inset -2px 0 6px rgba(0,0,0,.1);position:relative}
+.detail-meta{padding-top:4px}
+.detail-cat{font-size:10.5px;color:var(--burgundy);font-family:var(--mono);font-weight:600;letter-spacing:.08em;margin-bottom:8px}
+.detail-title{font-family:var(--serif);font-size:24px;font-weight:700;color:var(--ink);line-height:1.35;margin-bottom:6px}
+.detail-author-row{font-size:13px;color:var(--ink-mute);margin-bottom:14px}
+.detail-author-row b{color:var(--ink);font-weight:600}
+.detail-rating{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.stars{color:var(--gold);font-size:14px;letter-spacing:.05em}
+.rating-num{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink)}
+.rating-cnt{font-size:11.5px;color:var(--ink-mute)}
+/* 구매 박스 */
+.buy-box{background:var(--paper-light);border:1.5px solid var(--rule);border-radius:10px;padding:20px 22px;margin-bottom:18px}
+.buy-box-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:14px}
+.format-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.fmt-tab{padding:7px 15px;border:1.5px solid var(--rule);border-radius:7px;font-size:12.5px;font-weight:600;color:var(--ink-mute);background:var(--paper);transition:all .15s}
+.fmt-tab:hover{border-color:var(--burgundy);color:var(--burgundy)}
+.fmt-tab.on{border-color:var(--burgundy);background:rgba(122,31,43,.07);color:var(--burgundy)}
+.fmt-tab.disabled{opacity:.38;pointer-events:none}
+.fmt-tab .fmt-ico{margin-right:5px}
+.price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.price-main{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--ink)}
+.price-orig{font-size:14px;color:var(--ink-mute);text-decoration:line-through}
+.price-dc{font-size:13px;color:#C0392B;font-weight:600}
+.price-desc{font-size:11.5px;color:var(--ink-mute);margin-bottom:16px;line-height:1.6}
+.qty-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.qty-lbl{font-size:12.5px;color:var(--ink-mute)}
+.qty-ctrl{display:flex;align-items:center;gap:0;border:1.5px solid var(--rule);border-radius:7px;overflow:hidden}
+.qty-btn{width:34px;height:34px;background:var(--paper-deep);border:none;font-size:16px;color:var(--ink);transition:background .12s}
+.qty-btn:hover{background:var(--rule)}
+.qty-val{width:44px;text-align:center;font-family:var(--mono);font-size:14px;font-weight:600;border:none;background:var(--paper-light);color:var(--ink);outline:none}
+.btn-buy-row{display:flex;gap:9px}
+.btn-cart{flex:1;padding:12px;background:var(--paper-deep);border:1.5px solid var(--rule);border-radius:7px;font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink);transition:all .15s}
+.btn-cart:hover{border-color:var(--burgundy);color:var(--burgundy);background:rgba(122,31,43,.05)}
+.btn-buy{flex:2;padding:12px;background:var(--burgundy);border:none;border-radius:7px;font-family:var(--serif);font-size:14px;font-weight:700;color:#fff;transition:opacity .15s}
+.btn-buy:hover{opacity:.88}
+.external-channels{margin-top:14px;border-top:1px solid var(--rule);padding-top:14px}
+.ext-title{font-size:11px;color:var(--ink-mute);margin-bottom:9px;font-weight:600}
+.ext-links{display:flex;gap:7px;flex-wrap:wrap}
+.ext-link{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--rule);border-radius:6px;font-size:11.5px;color:var(--ink-soft);background:var(--paper);transition:border-color .12s}
+.ext-link:hover{border-color:var(--burgundy);color:var(--burgundy)}
+/* 상세 탭 */
+.detail-tabs{display:flex;gap:0;border-bottom:2px solid var(--rule);margin-bottom:28px;overflow-x:auto}
+.dtab{padding:11px 22px;font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--ink-mute);background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s}
+.dtab:hover{color:var(--ink)}
+.dtab.on{color:var(--burgundy);border-bottom-color:var(--burgundy)}
+.dtab-panel{display:none}.dtab-panel.on{display:block}
+/* 도서 소개 */
+.intro-body{font-size:14px;color:var(--ink-soft);line-height:1.85;max-width:780px}
+.intro-body h3{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--ink);margin:22px 0 10px}
+.intro-body p{margin-bottom:12px}
+.intro-body ul{padding-left:20px;margin-bottom:12px}
+.intro-body ul li{margin-bottom:5px}
+/* 저역자 소개 */
+.author-card{display:flex;gap:20px;padding:20px;background:var(--paper-light);border:1px solid var(--rule);border-radius:var(--radius);margin-bottom:14px}
+.author-avatar{width:72px;height:72px;border-radius:50%;background:var(--burgundy);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:24px;font-weight:700;color:#fff;flex-shrink:0}
+.author-name{font-family:var(--serif);font-size:15px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.author-role{font-size:11px;color:var(--burgundy);font-family:var(--mono);margin-bottom:8px}
+.author-bio{font-size:13px;color:var(--ink-soft);line-height:1.7}
+/* 목차 */
+.toc-part{margin-bottom:20px}
+.toc-part-title{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink);padding:10px 14px;background:var(--paper-deep);border-radius:7px;margin-bottom:8px;display:flex;align-items:center;gap:8px;cursor:pointer}
+.toc-items{padding:0 4px;display:flex;flex-direction:column;gap:0}
+.toc-item{display:flex;gap:12px;padding:7px 12px;font-size:13px;color:var(--ink-soft);border-radius:5px;transition:background .1s}
+.toc-item:hover{background:var(--paper-deep)}
+.toc-ch{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);min-width:40px;flex-shrink:0;padding-top:2px}
+.toc-pg{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);margin-left:auto;flex-shrink:0;padding-top:2px}
+/* 소개 영상 */
+.video-hero{aspect-ratio:16/9;background:linear-gradient(135deg,#10130d,#1a2a14);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:1.5px solid rgba(29,158,117,.2);cursor:pointer;transition:border-color .15s;margin-bottom:16px}
+.video-hero:hover{border-color:rgba(29,158,117,.5)}
+.vplay{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;font-size:26px;transition:background .15s}
+.video-hero:hover .vplay{background:rgba(255,255,255,.22)}
+.vmeta{font-family:var(--mono);font-size:12px;color:rgba(246,241,230,.5)}
+.video-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vcard{display:flex;gap:12px;padding:13px 15px;background:var(--paper-light);border:1px solid var(--rule);border-radius:8px;cursor:pointer;transition:border-color .15s}
+.vcard:hover{border-color:rgba(122,31,43,.3)}
+.vcard-thumb{width:80px;height:54px;background:linear-gradient(135deg,#1a2a14,#2a1a14);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.vcard-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.vcard-meta{font-size:11px;color:var(--ink-mute);font-family:var(--mono)}
+/* 오류 신고 */
+.err-form{background:var(--paper-light);border:1.5px solid var(--rule);border-radius:var(--radius);padding:22px 24px;margin-bottom:24px}
+.form-title{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-input{width:100%;padding:9px 13px;border:1.5px solid var(--rule);border-radius:7px;font-family:var(--sans);font-size:13px;background:var(--paper);color:var(--ink);outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--burgundy)}
+.form-textarea{width:100%;min-height:90px;padding:9px 13px;border:1.5px solid var(--rule);border-radius:7px;font-family:var(--sans);font-size:13px;background:var(--paper);color:var(--ink);outline:none;resize:vertical;transition:border-color .15s}
+.form-textarea:focus{border-color:var(--burgundy)}
+.form-submit{padding:10px 24px;background:var(--burgundy);color:#fff;border:none;border-radius:7px;font-family:var(--serif);font-size:13px;font-weight:700;transition:opacity .15s}
+.form-submit:hover{opacity:.86}
+.err-list{display:flex;flex-direction:column;gap:8px}
+.err-item{display:flex;gap:10px;padding:12px 14px;background:var(--paper-light);border:1px solid var(--rule);border-radius:8px;align-items:flex-start}
+.err-type-badge{font-size:10px;padding:2px 7px;border-radius:3px;font-family:var(--mono);font-weight:600;flex-shrink:0;margin-top:2px}
+.err-type-badge.fix{background:rgba(192,57,43,.08);color:#C0392B}
+.err-type-badge.note{background:rgba(26,143,184,.08);color:var(--ocean)}
+/* 독자 문의 */
+.qa-item{padding:16px 18px;background:var(--paper-light);border:1px solid var(--rule);border-radius:9px;margin-bottom:10px}
+.qa-q{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:8px;display:flex;gap:8px}
+.qa-q::before{content:'Q';font-family:var(--mono);font-size:11px;font-weight:700;color:var(--burgundy);background:rgba(122,31,43,.09);padding:2px 7px;border-radius:3px;flex-shrink:0;margin-top:2px}
+.qa-a{font-size:13px;color:var(--ink-soft);line-height:1.75;display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--rule-soft);margin-top:8px}
+.qa-a::before{content:'A';font-family:var(--mono);font-size:11px;font-weight:700;color:var(--forest);background:rgba(45,74,58,.09);padding:2px 7px;border-radius:3px;flex-shrink:0;margin-top:2px}
+.qa-meta{font-size:10.5px;color:var(--ink-mute);font-family:var(--mono);margin-top:8px;text-align:right}
+
+/* ══════════════════════════
+   장바구니 드로어
+══════════════════════════ */
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;opacity:0;pointer-events:none;transition:opacity .22s}
+.cart-overlay.on{opacity:1;pointer-events:all}
+.cart-drawer{position:fixed;right:-420px;top:0;width:420px;height:100vh;background:var(--paper-light);border-left:1px solid var(--rule);z-index:401;overflow-y:auto;transition:right .25s;display:flex;flex-direction:column}
+.cart-drawer.on{right:0}
+.cart-hd{padding:20px 24px 16px;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cart-title{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--ink)}
+.cart-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--paper-deep);font-size:16px;color:var(--ink);transition:background .12s}
+.cart-close:hover{background:var(--rule)}
+.cart-body{flex:1;padding:16px 24px;overflow-y:auto}
+.cart-empty{text-align:center;padding:48px 0;color:var(--ink-mute);font-size:13.5px}
+.cart-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--rule-soft)}
+.ci-cover{width:52px;height:68px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.ci-title{font-family:var(--serif);font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px;line-height:1.4}
+.ci-fmt{font-size:10.5px;color:var(--burgundy);font-family:var(--mono);font-weight:600}
+.ci-price{font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ink);margin-top:6px}
+.ci-remove{margin-left:auto;font-size:13px;color:var(--ink-mute);background:none;border:none;padding:4px;align-self:flex-start;transition:color .12s;flex-shrink:0}
+.ci-remove:hover{color:var(--burgundy)}
+.cart-ft{padding:16px 24px 24px;border-top:1px solid var(--rule);flex-shrink:0}
+.cart-total-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.cart-total-lbl{font-size:13px;color:var(--ink-mute)}
+.cart-total-price{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ink)}
+.btn-checkout{width:100%;padding:14px;background:var(--burgundy);color:#fff;border:none;border-radius:8px;font-family:var(--serif);font-size:15px;font-weight:700;transition:opacity .15s;margin-bottom:8px}
+.btn-checkout:hover{opacity:.87}
+.btn-continue{width:100%;padding:12px;background:var(--paper-deep);color:var(--ink);border:1.5px solid var(--rule);border-radius:8px;font-family:var(--serif);font-size:13.5px;font-weight:600;transition:all .15s}
+.btn-continue:hover{border-color:var(--burgundy);color:var(--burgundy)}
+
+/* ── 토스트 ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--ink);color:#fff;padding:12px 26px;border-radius:9px;font-size:13.5px;font-weight:500;opacity:0;pointer-events:none;z-index:999;transition:all .28s;white-space:nowrap}
+.toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── 반응형 ── */
+@media(max-width:900px){
+  .list-wrap{grid-template-columns:1fr;padding:20px 16px 48px}
+  .filter-panel{display:none}
+  .book-grid{grid-template-columns:repeat(3,1fr)}
+  .detail-top{grid-template-columns:1fr;gap:20px}
+  .cover-3d{max-width:180px}
+  .detail-wrap{padding:20px 16px 48px}
+  .hd-inner{padding:0 16px}
+}
+@media(max-width:600px){
+  .book-grid{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:1fr}
+  .video-list{grid-template-columns:1fr}
+  .cart-drawer{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════ HEADER ══════════════════════════ -->
+<header class="hd">
+  <div class="hd-inner">
+    <div class="hd-logo" onclick="showList()">
+      <div class="hd-mark">A</div>
+      <span class="hd-name">에이콘 도서</span>
+    </div>
+    <div class="hd-search">
+      <span class="hd-search-ico">🔍</span>
+      <input type="text" id="search-input" placeholder="도서명, 저자, 키워드 검색…" oninput="onSearch(this.value)" onkeydown="if(event.key==='Enter')onSearch(this.value)">
+    </div>
+    <div class="hd-nav">
+      <button class="hd-nav-btn" onclick="showList()">전체 도서</button>
+      <button class="hd-nav-btn" onclick="location.href='author-portal.html'" title="저자 포털">저자 포털</button>
+      <button class="hd-nav-btn" onclick="location.href='admin-studio.html'" title="관리자 스튜디오" style="font-size:11px;opacity:.65">Admin Studio</button>
+      <button class="hd-nav-btn hd-cart" onclick="toggleCart()">
+        🛒 장바구니
+        <span class="cart-badge" id="cart-badge" style="display:none">0</span>
+      </button>
+      <a id="hd-login-btn" href="mypage.html" class="hd-login-btn" title="내 서재 · 마이페이지" onclick="handleHeaderLogin(event)">
+        <span class="hd-login-avatar">에</span>
+        <span class="hd-login-label">로그인</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ── 카테고리 바 ── -->
+<div class="cat-bar" id="cat-bar">
+  <div class="cat-inner">
+    <button class="cat-btn on" data-cat="all" onclick="filterCat('all',this)">전체</button>
+    <button class="cat-btn" data-cat="AI·머신러닝" onclick="filterCat('AI·머신러닝',this)">AI · 머신러닝</button>
+    <button class="cat-btn" data-cat="프로그래밍" onclick="filterCat('프로그래밍',this)">프로그래밍</button>
+    <button class="cat-btn" data-cat="3D·디자인" onclick="filterCat('3D·디자인',this)">3D · 디자인</button>
+    <button class="cat-btn" data-cat="데이터" onclick="filterCat('데이터',this)">데이터</button>
+    <button class="cat-btn" data-cat="경영·비즈니스" onclick="filterCat('경영·비즈니스',this)">경영 · 비즈니스</button>
+    <button class="cat-btn" data-cat="보안" onclick="filterCat('보안',this)">보안</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════ PAGE: 목록 ══════════════════════════ -->
+<div class="page on" id="page-list">
+  <div class="list-wrap">
+    <!-- 사이드 필터 -->
+    <aside class="filter-panel">
+      <div class="fp-title">상세 필터</div>
+      <div class="fp-group">
+        <div class="fp-group-title">구매 형태</div>
+        <label class="fp-item"><input type="checkbox" onchange="applyFilters()" value="paper"> 종이책</label>
+        <label class="fp-item"><input type="checkbox" onchange="applyFilters()" value="ebook"> 전자책</label>
+        <label class="fp-item"><input type="checkbox" onchange="applyFilters()" value="epub"> ePub</label>
+        <label class="fp-item"><input type="checkbox" onchange="applyFilters()" value="audio"> 오디오북</label>
+        <label class="fp-item"><input type="checkbox" onchange="applyFilters()" value="lecture"> 강의</label>
+      </div>
+      <div class="fp-group">
+        <div class="fp-group-title">가격대</div>
+        <label class="fp-item"><input type="checkbox" onchange="applyFilters()" value="under20"> ~₩20,000</label>
+        <label class="fp-item"><input type="checkbox" onchange="applyFilters()" value="20to40"> ₩20,000–40,000</label>
+        <label class="fp-item"><input type="checkbox" onchange="applyFilters()" value="over40"> ₩40,000~</label>
+      </div>
+      <div class="fp-group">
+        <div class="fp-group-title">출간 상태</div>
+        <label class="fp-item"><input type="checkbox" onchange="applyFilters()" value="available"> 구매 가능</label>
+        <label class="fp-item"><input type="checkbox" onchange="applyFilters()" value="soon"> 출간 예정</label>
+      </div>
+    </aside>
+    <!-- 도서 목록 -->
+    <div>
+      <div class="books-header">
+        <div class="books-count" id="books-count">전체 <b>0</b>종</div>
+        <select class="sort-sel" onchange="sortBooks(this.value)">
+          <option value="new">신간순</option>
+          <option value="popular">인기순</option>
+          <option value="price_asc">낮은가격순</option>
+          <option value="price_desc">높은가격순</option>
+        </select>
+      </div>
+      <div class="book-grid" id="book-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ PAGE: 상세 ══════════════════════════ -->
+<div class="page" id="page-detail">
+  <div class="detail-wrap">
+    <div class="breadcrumb">
+      <span onclick="showList()">에이콘 도서</span>
+      <span class="breadcrumb-sep">›</span>
+      <span id="bc-cat" onclick="showList()"></span>
+      <span class="breadcrumb-sep">›</span>
+      <span id="bc-title" style="color:var(--ink)"></span>
+    </div>
+
+    <!-- 상단 도서 정보 + 구매 -->
+    <div class="detail-top">
+      <!-- 표지 -->
+      <div>
+        <div class="cover-3d" id="det-cover" style="background:linear-gradient(135deg,var(--burgundy),#4a1020)">📚</div>
+        <!-- 형태 배지 -->
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:5px" id="det-format-list"></div>
+      </div>
+
+      <!-- 메타 + 구매 -->
+      <div class="detail-meta">
+        <div class="detail-cat" id="det-cat"></div>
+        <div class="detail-title" id="det-title"></div>
+        <div class="detail-author-row" id="det-author-row"></div>
+        <div class="detail-rating">
+          <span class="stars">★★★★★</span>
+          <span class="rating-num" id="det-rating">4.8</span>
+          <span class="rating-cnt" id="det-review-cnt">(32개 리뷰)</span>
+        </div>
+
+        <!-- 구매 박스 -->
+        <div class="buy-box">
+          <div class="buy-box-title">구매 형태 선택</div>
+          <div class="format-tabs" id="format-tabs"></div>
+          <div class="price-row">
+            <span class="price-main" id="det-price">₩0</span>
+            <span class="price-orig" id="det-price-orig"></span>
+            <span class="price-dc" id="det-price-dc"></span>
+          </div>
+          <div class="price-desc" id="det-price-desc"></div>
+          <div class="qty-row" id="det-qty-row">
+            <span class="qty-lbl">수량</span>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="changeQty(-1)">−</button>
+              <input class="qty-val" id="qty-val" type="number" value="1" min="1" max="99">
+              <button class="qty-btn" onclick="changeQty(1)">+</button>
+            </div>
+          </div>
+          <div class="btn-buy-row">
+            <button class="btn-cart" onclick="addToCart()">🛒 장바구니</button>
+            <button class="btn-buy" onclick="buyNow()">바로 구매 →</button>
+          </div>
+          <!-- 외부 채널 -->
+          <div class="external-channels" id="ext-channels"></div>
+        </div>
+        <!-- 도서 간략 정보 -->
+        <div style="font-size:12px;color:var(--ink-mute);line-height:2;background:var(--paper-deep);border-radius:7px;padding:11px 14px" id="det-brief"></div>
+      </div>
+    </div>
+
+    <!-- 상세 탭 -->
+    <div class="detail-tabs" id="detail-tabs">
+      <button class="dtab on" data-dtab="intro" onclick="switchDTab('intro',this)">도서 소개</button>
+      <button class="dtab" data-dtab="authors" onclick="switchDTab('authors',this)">저 · 역자 소개</button>
+      <button class="dtab" data-dtab="toc" onclick="switchDTab('toc',this)">목차</button>
+      <button class="dtab" data-dtab="video" onclick="switchDTab('video',this)">소개 영상</button>
+      <button class="dtab" data-dtab="errata" onclick="switchDTab('errata',this)">도서 오류 신고</button>
+      <button class="dtab" data-dtab="qa" onclick="switchDTab('qa',this)">독자 문의</button>
+    </div>
+
+    <!-- 도서 소개 -->
+    <div class="dtab-panel on" id="dtab-intro">
+      <div class="intro-body" id="det-intro-body"></div>
+    </div>
+    <!-- 저역자 소개 -->
+    <div class="dtab-panel" id="dtab-authors">
+      <div id="det-authors-body"></div>
+    </div>
+    <!-- 목차 -->
+    <div class="dtab-panel" id="dtab-toc">
+      <div id="det-toc-body"></div>
+    </div>
+    <!-- 소개 영상 -->
+    <div class="dtab-panel" id="dtab-video">
+      <div class="video-hero" onclick="toast('출간 후 영상이 업로드됩니다.')">
+        <div class="vplay">▶</div>
+        <div class="vmeta" id="det-video-meta">저자 도서 소개 영상 · 출간 후 공개</div>
+      </div>
+      <div class="video-list" id="det-video-list"></div>
+    </div>
+    <!-- 도서 오류 신고 -->
+    <div class="dtab-panel" id="dtab-errata">
+      <div class="err-form">
+        <div class="form-title">🔍 오류 신고</div>
+        <div class="form-grid">
+          <input class="form-input" id="err-type" placeholder="오류 유형 (오탈자 / 내용 오류 / 코드 오류)">
+          <input class="form-input" id="err-page" placeholder="위치 (예: p.45, 3번째 줄)">
+        </div>
+        <textarea class="form-textarea" id="err-orig" placeholder="원문: 오류가 있는 원래 문장을 그대로 입력해주세요" style="margin-bottom:10px"></textarea>
+        <textarea class="form-textarea" id="err-fix" placeholder="수정안: 올바른 내용을 입력해주세요"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px">
+          <button class="form-submit" onclick="submitErr()">신고 제출</button>
+        </div>
+      </div>
+      <div style="font-family:var(--serif);font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px">등록된 정오표</div>
+      <div class="err-list" id="err-list"></div>
+    </div>
+    <!-- 독자 문의 -->
+    <div class="dtab-panel" id="dtab-qa">
+      <div class="err-form" style="margin-bottom:24px">
+        <div class="form-title">💬 독자 문의</div>
+        <input class="form-input" id="qa-name" placeholder="이름 (선택, 미입력 시 익명)" style="margin-bottom:10px">
+        <textarea class="form-textarea" id="qa-q" placeholder="질문을 입력해주세요. 관련 페이지 번호나 챕터를 함께 적어주시면 빠른 답변에 도움이 됩니다."></textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px">
+          <span style="font-size:12px;color:var(--ink-mute)">⏱ 답변 목표: 7영업일 이내 · 저자 또는 편집부</span>
+          <button class="form-submit" onclick="submitQA()">문의 등록 →</button>
+        </div>
+      </div>
+      <div style="font-family:var(--serif);font-size:13px;font-weight:700;color:var(--ink);margin-bottom:14px">등록된 Q&A</div>
+      <div id="qa-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ 장바구니 드로어 ══════════════════════════ -->
+<div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-hd">
+    <div class="cart-title">🛒 장바구니</div>
+    <button class="cart-close" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-body">
+    <div class="cart-empty">장바구니가 비어 있습니다.</div>
+  </div>
+  <div class="cart-ft">
+    <div class="cart-total-row">
+      <span class="cart-total-lbl">합계</span>
+      <span class="cart-total-price" id="cart-total">₩0</span>
+    </div>
+    <button class="btn-checkout" onclick="checkout()">결제하기 →</button>
+    <button class="btn-continue" onclick="toggleCart()">쇼핑 계속하기</button>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════ DATA ══════════════════════════ -->
+<script>
+
+/* ═══════════════════════════════════════════════════════════
+   ACORN Shared Data Layer v1.0
+   localStorage 공유 스키마:
+     ACORN_USER            독자 로그인 세션 {id, name, email}
+     ACORN_BOOKS           관리자 등록 도서 목록 (BM_BOOKS sync)
+     ACORN_CART            장바구니 [{bookId, fmt, price, qty}]
+     ACORN_ORDERS          구매 이력 [{orderId, date, items, total}]
+     ACORN_LIBRARY         디지털 서재 [{bookId, format, ...}]
+     ACORN_AUTHOR_SESSION  저자 포털 세션 {email, name, ...}
+     adm_mr_{ch}           관리자 채널 상태 (Admin→Author)
+═══════════════════════════════════════════════════════════ */
+var ACORN_DB = (function(){
+  function _g(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+  function _s(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  function _rm(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  var db = {
+    getUser:         function(){ return _g('ACORN_USER'); },
+    setUser:         function(u){ _s('ACORN_USER', u); },
+    logoutUser:      function(){ _rm('ACORN_USER'); },
+    isLoggedIn:      function(){ return !!_g('ACORN_USER'); },
+    getBooks:        function(){ return _g('ACORN_BOOKS') || []; },
+    setBooks:        function(b){ _s('ACORN_BOOKS', b); },
+    getCart:         function(){ return _g('ACORN_CART') || []; },
+    setCart:         function(c){ _s('ACORN_CART', c); },
+    clearCart:       function(){ _rm('ACORN_CART'); },
+    getOrders:       function(){ return _g('ACORN_ORDERS') || []; },
+    addOrder:        function(o){ var a=this.getOrders(); a.unshift(o); _s('ACORN_ORDERS', a); },
+    getLibrary:      function(){ return _g('ACORN_LIBRARY') || []; },
+    addToLibrary:    function(item){
+      var lib = this.getLibrary();
+      if(!lib.find(function(b){ return b.bookId===item.bookId && b.format===item.format; })){
+        lib.unshift(item); _s('ACORN_LIBRARY', lib);
+      }
+    },
+    getAuthorSession:function(){ return _g('ACORN_AUTHOR_SESSION'); },
+    setAuthorSession:function(a){ _s('ACORN_AUTHOR_SESSION', a); },
+    logoutAuthor:    function(){ _rm('ACORN_AUTHOR_SESSION'); },
+    getMrChannel:    function(ch){ return _g('adm_mr_'+ch) || {status:'',note:'',statusLabel:''}; },
+  };
+  return db;
+})();
+
+/* ─── 도서 데이터 ─── */
+var BOOKS = [
+  {
+    id:'b001', cat:'AI·머신러닝',
+    title:'LangChain과 LangGraph로 만드는 LLM 애플리케이션 2/e',
+    subtitle:'프로토타입에서 프로덕션까지 — 에이전틱 AI 시스템 실전 구축 가이드',
+    authors:[{name:'해리슨 체이스',role:'저',bio:'LangChain 창시자. LLM 애플리케이션 오픈소스 생태계를 선도하며 전 세계 수만 개의 AI 프로젝트에 영향을 미쳤다.'}],
+    translators:[{name:'강승훈',role:'역',bio:'에이콘출판사 편집장. AI·머신러닝 분야 번역 다수.'}],
+    coverColor:'linear-gradient(135deg,#1f5e42,#2c4a7a)',
+    coverEmoji:'🦜',
+    price:{paper:42000,ebook:29400,epub:29400},
+    formats:['paper','ebook','epub'],
+    pages:560, pub:'2026.04', isbn:'979-11-XXXX-XXX-0',
+    status:'available',
+    rating:4.9, reviews:87,
+    intro:`<h3>LLM 애플리케이션 개발의 표준 레퍼런스</h3>
+<p>ChatGPT API 호출을 넘어 실제 서비스에 배포 가능한 에이전틱 AI 시스템을 구축하는 방법을 다룹니다. LangChain과 LangGraph의 핵심 개념부터 RAG 파이프라인, 멀티 에이전트 시스템, 프로덕션 배포까지 실전 중심으로 설명합니다.</p>
+<h3>이런 분에게 추천합니다</h3>
+<ul>
+<li>LLM API를 넘어 본격적인 AI 애플리케이션을 개발하고 싶은 개발자</li>
+<li>RAG, 에이전트, 멀티모달 시스템을 실무에 적용하려는 엔지니어</li>
+<li>LangChain 1판 독자로 최신 LangGraph를 배우고 싶은 분</li>
+</ul>
+<h3>핵심 내용</h3>
+<ul>
+<li>LangChain Expression Language(LCEL)로 파이프라인 설계</li>
+<li>LangGraph를 활용한 상태 기반 에이전트 구현</li>
+<li>벡터 DB 연동 RAG 시스템 구축</li>
+<li>LangSmith로 프로덕션 모니터링</li>
+</ul>`,
+    toc:[
+      {part:'1부 — LangChain 기초', chapters:[
+        {ch:'01장',title:'LLM 애플리케이션 아키텍처 개요',page:1},
+        {ch:'02장',title:'LangChain 핵심 컴포넌트',page:35},
+        {ch:'03장',title:'LCEL과 파이프라인 설계',page:78},
+        {ch:'04장',title:'프롬프트 엔지니어링 실전',page:115},
+      ]},
+      {part:'2부 — RAG 시스템', chapters:[
+        {ch:'05장',title:'벡터 DB와 임베딩',page:155},
+        {ch:'06장',title:'문서 로더와 청킹 전략',page:195},
+        {ch:'07장',title:'고급 RAG 패턴',page:238},
+      ]},
+      {part:'3부 — LangGraph 에이전트', chapters:[
+        {ch:'08장',title:'LangGraph 기초와 상태 그래프',page:285},
+        {ch:'09장',title:'멀티 에이전트 시스템',page:342},
+        {ch:'10장',title:'도구 사용과 코드 실행',page:390},
+      ]},
+      {part:'4부 — 프로덕션', chapters:[
+        {ch:'11장',title:'LangSmith 모니터링',page:440},
+        {ch:'12장',title:'배포와 스케일링',page:488},
+        {ch:'13장',title:'보안과 비용 최적화',page:520},
+      ]},
+    ],
+    errata:[
+      {type:'fix',date:'2026.05.12',page:'p.238',content:'코드 블록 import 경로 오류: langchain.vectorstores → langchain_community.vectorstores'},
+    ],
+    qa:[
+      {q:'Python 3.11 환경에서 설치 오류가 납니다.',a:'pip install langchain-community==0.0.38로 버전을 고정하면 해결됩니다. GitHub 이슈 #142 참조.',date:'2026.05.10',author:'편집부'},
+    ],
+    videos:[
+      {title:'LangChain vs LangGraph 차이점 설명',duration:'12:34'},
+      {title:'RAG 파이프라인 라이브 코딩',duration:'28:15'},
+    ],
+    extChannels:['kyobo','yes24','aladin','ridi'],
+  },
+  {
+    id:'b002', cat:'3D·디자인',
+    title:'하이엔드 Maya 리깅 바이블',
+    subtitle:'10년 현장 경험 — 게임·영상·VFX를 위한 고급 리깅 완전 가이드',
+    authors:[{name:'이재진',role:'저',bio:'VFX 아티스트 겸 리깅 슈퍼바이저. 국내 주요 영화·드라마 CG 프로젝트에 참여했으며 Maya 리깅 전문 강사로도 활동 중이다.'}],
+    translators:[],
+    coverColor:'linear-gradient(135deg,#7A1F2B,#4a1020)',
+    coverEmoji:'🎭',
+    price:{paper:52000,ebook:36400},
+    formats:['paper','ebook'],
+    pages:680, pub:'2028.01 (예정)', isbn:'979-11-XXXX-XXX-1',
+    status:'soon',
+    rating:0, reviews:0,
+    intro:`<h3>국내 유일의 고급 Maya 리깅 전문서</h3>
+<p>기초 리깅 입문서를 넘어, 실제 현장에서 통하는 고급 테크닉을 다룹니다. 캐릭터 리깅부터 페이셜 리깅, 옷감·머리카락 시뮬레이션, Python 자동화까지 680페이지에 걸쳐 깊이 있게 설명합니다.</p>
+<h3>이런 분에게 추천합니다</h3>
+<ul>
+<li>Maya 기초를 알고 본격적으로 리깅을 배우고 싶은 분</li>
+<li>현장에서 사용하는 고급 리깅 테크닉이 필요한 아티스트</li>
+<li>리깅 파이프라인 자동화를 위한 Python 스크립트를 배우고 싶은 분</li>
+</ul>`,
+    toc:[
+      {part:'1부 — 기초 리깅', chapters:[
+        {ch:'01장',title:'Maya 리깅 개요와 파이프라인',page:1},
+        {ch:'02장',title:'조인트와 IK/FK 시스템',page:45},
+        {ch:'03장',title:'스킨 웨이팅 기초',page:98},
+      ]},
+      {part:'2부 — 고급 캐릭터 리깅', chapters:[
+        {ch:'04장',title:'스파인 리깅 고급 기법',page:155},
+        {ch:'05장',title:'손·발 리깅',page:210},
+        {ch:'06장',title:'페이셜 리깅 시스템',page:278},
+      ]},
+      {part:'3부 — 시뮬레이션·자동화', chapters:[
+        {ch:'07장',title:'옷감·머리카락 시뮬레이션',page:380},
+        {ch:'08장',title:'Python으로 리깅 자동화',page:460},
+      ]},
+    ],
+    errata:[],
+    qa:[
+      {q:'출간 예정일이 언제인가요?',a:'2028년 1월 출간 예정입니다. 사전 구매 알림 신청 시 우선 안내드립니다.',date:'2026.05.01',author:'편집부'},
+    ],
+    videos:[
+      {title:'저자 인터뷰 — 리깅을 배워야 하는 이유',duration:'8:42'},
+    ],
+    extChannels:['kyobo','yes24','aladin'],
+  },
+  {
+    id:'b003', cat:'데이터',
+    title:'파이썬 데이터 엔지니어링 완벽 가이드',
+    subtitle:'Airflow · dbt · Spark — 현대적인 데이터 파이프라인 구축',
+    authors:[{name:'김영한',role:'저',bio:'데이터 엔지니어 10년 경력. 대형 커머스 플랫폼의 데이터 인프라를 설계·운영했으며, 현재는 스타트업 데이터팀을 이끌고 있다.'}],
+    translators:[],
+    coverColor:'linear-gradient(135deg,#1a5e8a,#0d3a5c)',
+    coverEmoji:'⚙',
+    price:{paper:38000,ebook:26600,epub:26600,lecture:49000},
+    formats:['paper','ebook','epub','lecture'],
+    pages:480, pub:'2026.06', isbn:'979-11-XXXX-XXX-2',
+    status:'available',
+    rating:4.7, reviews:54,
+    intro:`<h3>데이터 엔지니어링의 A to Z</h3>
+<p>ETL 파이프라인 설계부터 데이터 웨어하우스 구축, 실시간 스트리밍까지 현대 데이터 엔지니어에게 필요한 모든 기술을 다룹니다. Apache Airflow, dbt, Apache Spark를 중심으로 실제 프로젝트에 바로 적용 가능한 코드를 제공합니다.</p>`,
+    toc:[
+      {part:'1부 — 데이터 파이프라인 기초', chapters:[
+        {ch:'01장',title:'데이터 엔지니어링 개요',page:1},
+        {ch:'02장',title:'Airflow 기초와 DAG 설계',page:40},
+        {ch:'03장',title:'dbt로 데이터 변환',page:95},
+      ]},
+      {part:'2부 — 대규모 처리', chapters:[
+        {ch:'04장',title:'Apache Spark 기초',page:155},
+        {ch:'05장',title:'스트리밍 파이프라인',page:230},
+        {ch:'06장',title:'데이터 웨어하우스 설계',page:290},
+      ]},
+      {part:'3부 — 운영·모니터링', chapters:[
+        {ch:'07장',title:'파이프라인 모니터링',page:360},
+        {ch:'08장',title:'데이터 품질 관리',page:410},
+      ]},
+    ],
+    errata:[],
+    qa:[
+      {q:'강의 콘텐츠는 어디서 수강하나요?',a:'에이콘 직접 구매 시 강의 수강권이 포함됩니다. 별도 구매도 가능합니다.',date:'2026.05.15',author:'편집부'},
+    ],
+    videos:[
+      {title:'Airflow vs Prefect 비교 특강',duration:'22:10'},
+      {title:'dbt 라이브 데모',duration:'18:55'},
+    ],
+    extChannels:['kyobo','yes24','aladin','ridi'],
+  },
+  {
+    id:'b004', cat:'경영·비즈니스',
+    title:'중소기업 폴리캐스트 — 8,000일의 목격',
+    subtitle:'현장에서 배운 중소기업 생존의 법칙',
+    authors:[{name:'서경란',role:'저',bio:'22년간 중소기업 현장에서 컨설턴트·임원으로 활동. 8,000일의 현장 경험을 바탕으로 중소기업의 실질적인 성장 전략을 연구한다.'}],
+    translators:[],
+    coverColor:'linear-gradient(135deg,#3d2a1a,#5c3d1e)',
+    coverEmoji:'🏭',
+    price:{paper:24000,ebook:16800,audio:12000},
+    formats:['paper','ebook','audio'],
+    pages:320, pub:'2026.06', isbn:'979-11-XXXX-XXX-3',
+    status:'available',
+    rating:4.6, reviews:28,
+    intro:`<h3>8,000일의 현장 목격록</h3>
+<p>22년간 수백 개의 중소기업 현장을 관찰하며 기록한 생존과 성장의 이야기. 이론이 아닌 실제 현장에서 무슨 일이 일어났는지, 어떻게 문제를 해결했는지 솔직하게 담았습니다.</p>`,
+    toc:[
+      {part:'1부 — 생존의 조건', chapters:[
+        {ch:'01장',title:'중소기업의 현실',page:1},
+        {ch:'02장',title:'인재 확보와 유지',page:55},
+        {ch:'03장',title:'현금흐름 관리',page:105},
+      ]},
+      {part:'2부 — 성장의 법칙', chapters:[
+        {ch:'04장',title:'고객 집착의 경영',page:165},
+        {ch:'05장',title:'디지털 전환의 현실',page:220},
+        {ch:'06장',title:'글로벌 진출 전략',page:272},
+      ]},
+    ],
+    errata:[],
+    qa:[],
+    videos:[
+      {title:'저자 인터뷰 — 8,000일을 돌아보며',duration:'15:22'},
+    ],
+    extChannels:['kyobo','yes24','aladin'],
+  },
+  {
+    id:'b005', cat:'보안',
+    title:'클라우드 네이티브 보안 실전 가이드',
+    subtitle:'Kubernetes · Zero Trust · DevSecOps',
+    authors:[{name:'박지훈',role:'저',bio:'클라우드 보안 아키텍트. AWS, GCP 멀티 클라우드 환경의 보안 설계 전문가로 기업 보안 아키텍처 컨설팅을 수행 중이다.'}],
+    translators:[],
+    coverColor:'linear-gradient(135deg,#1a3a2a,#0d2a1a)',
+    coverEmoji:'🛡',
+    price:{paper:36000,ebook:25200,epub:25200},
+    formats:['paper','ebook','epub'],
+    pages:420, pub:'2026.08', isbn:'979-11-XXXX-XXX-4',
+    status:'available',
+    rating:4.8, reviews:41,
+    intro:`<h3>Zero Trust 시대의 클라우드 보안</h3>
+<p>컨테이너화된 환경에서의 보안 위협과 대응 전략을 다룹니다. Kubernetes 클러스터 보안부터 서비스 메시, 비밀 관리, DevSecOps 파이프라인까지 실전 중심으로 구성했습니다.</p>`,
+    toc:[
+      {part:'1부 — 기초', chapters:[
+        {ch:'01장',title:'클라우드 보안 개요',page:1},
+        {ch:'02장',title:'Zero Trust 아키텍처',page:40},
+      ]},
+      {part:'2부 — Kubernetes 보안', chapters:[
+        {ch:'03장',title:'클러스터 하드닝',page:95},
+        {ch:'04장',title:'RBAC와 네트워크 정책',page:150},
+        {ch:'05장',title:'컨테이너 이미지 보안',page:200},
+      ]},
+      {part:'3부 — DevSecOps', chapters:[
+        {ch:'06장',title:'CI/CD 파이프라인 보안',page:270},
+        {ch:'07장',title:'비밀 관리 (Vault)',page:330},
+        {ch:'08장',title:'보안 모니터링',page:378},
+      ]},
+    ],
+    errata:[],
+    qa:[],
+    videos:[
+      {title:'Zero Trust 개념 설명',duration:'14:08'},
+    ],
+    extChannels:['kyobo','yes24','aladin','ridi'],
+  },
+  {
+    id:'b006', cat:'프로그래밍',
+    title:'Rust 고성능 시스템 프로그래밍',
+    subtitle:'안전하고 빠른 코드 — 실전 Rust 심화 가이드',
+    authors:[{name:'존 맥나마라',role:'저',bio:'시스템 프로그래밍 전문가. Mozilla에서 Firefox 엔진 개발에 참여했으며, Rust 커뮤니티 핵심 기여자다.'}],
+    translators:[{name:'황영주',role:'역',bio:'에이콘출판사 번역 기획팀. 시스템 프로그래밍 분야 다수 번역.'}],
+    coverColor:'linear-gradient(135deg,#5c2a1a,#3d1810)',
+    coverEmoji:'⚡',
+    price:{paper:44000,ebook:30800,epub:30800},
+    formats:['paper','ebook','epub'],
+    pages:510, pub:'2026.09', isbn:'979-11-XXXX-XXX-5',
+    status:'available',
+    rating:4.9, reviews:63,
+    intro:`<h3>Rust로 고성능 시스템을 만드는 법</h3>
+<p>기초 Rust를 알고 있다고 가정하고 시작합니다. 소유권·빌림·라이프타임의 심층 이해부터 비동기 프로그래밍, FFI, 임베디드 적용까지 다룹니다.</p>`,
+    toc:[
+      {part:'1부 — 심화 개념', chapters:[
+        {ch:'01장',title:'소유권 심층 이해',page:1},
+        {ch:'02장',title:'트레이트와 제네릭',page:60},
+        {ch:'03장',title:'라이프타임 완전 정복',page:115},
+      ]},
+      {part:'2부 — 고성능 패턴', chapters:[
+        {ch:'04장',title:'async/await 비동기',page:180},
+        {ch:'05장',title:'SIMD와 벡터 연산',page:250},
+        {ch:'06장',title:'메모리 최적화',page:310},
+      ]},
+      {part:'3부 — 실전', chapters:[
+        {ch:'07장',title:'시스템 콜과 FFI',page:380},
+        {ch:'08장',title:'임베디드 Rust',page:440},
+        {ch:'09장',title:'성능 프로파일링',page:480},
+      ]},
+    ],
+    errata:[],
+    qa:[],
+    videos:[
+      {title:'소유권 모델 시각화 강의',duration:'19:45'},
+    ],
+    extChannels:['kyobo','yes24','aladin','ridi'],
+  },
+];
+
+/* ── 가격 정보 ── */
+var FORMAT_INFO = {
+  paper:   {label:'종이책',  ico:'📗', desc:'전국 배송 · 평균 2–3일 내 도착. 할인 이벤트 시 추가 할인 적용.'},
+  ebook:   {label:'전자책',  ico:'📱', desc:'결제 즉시 다운로드. 교보e·리디·YES24ebook 등 연동.'},
+  epub:    {label:'ePub',    ico:'📖', desc:'ePub 3.x 표준 파일. 직접 다운로드 후 모든 리더기에서 사용.'},
+  audio:   {label:'오디오북',ico:'🎧', desc:'MP3 스트리밍 또는 다운로드. 통근·운동 중 청취 가능.'},
+  lecture: {label:'강의',    ico:'🎓', desc:'온라인 영상 강의. 수강 기간 무제한. 질문·피드백 포함.'},
+};
+
+var EXT_NAMES = {
+  kyobo:{name:'교보문고',url:'https://kyobo.co.kr'},
+  yes24:{name:'YES24',url:'https://yes24.com'},
+  aladin:{name:'알라딘',url:'https://aladin.co.kr'},
+  ridi:{name:'리디북스',url:'https://ridibooks.com'},
+};
+
+/* ── 상태 ── */
+var state = {
+  currentCat: 'all',
+  currentBook: null,
+  currentFmt: 'paper',
+  cart: ACORN_DB.getCart(),
+  errItems: {},
+  qaItems: {},
+};
+
+/* ══════ CART ══════ */
+function saveCart(){ ACORN_DB.setCart(state.cart); }
+function updateCartBadge(){
+  var b = document.getElementById('cart-badge');
+  var n = state.cart.reduce(function(s,i){return s+i.qty;},0);
+  b.textContent = n;
+  b.style.display = n > 0 ? 'flex' : 'none';
+}
+function toggleCart(){
+  var overlay = document.getElementById('cart-overlay');
+  var drawer  = document.getElementById('cart-drawer');
+  overlay.classList.toggle('on');
+  drawer.classList.toggle('on');
+  renderCart();
+}
+function renderCart(){
+  var body = document.getElementById('cart-body');
+  var total = document.getElementById('cart-total');
+  if (!state.cart.length){
+    body.innerHTML = '<div class="cart-empty">장바구니가 비어 있습니다.</div>';
+    total.textContent = '₩0'; return;
+  }
+  var sum = 0;
+  body.innerHTML = state.cart.map(function(item,i){
+    sum += item.price * item.qty;
+    var bk = BOOKS.find(function(b){return b.id===item.bookId;});
+    var fi = FORMAT_INFO[item.fmt];
+    return '<div class="cart-item">'
+      +'<div class="ci-cover" style="background:'+bk.coverColor+'">'+bk.coverEmoji+'</div>'
+      +'<div style="flex:1">'
+      +'<div class="ci-title">'+bk.title+'</div>'
+      +'<div class="ci-fmt">'+fi.ico+' '+fi.label+'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-top:6px">'
+      +'<span class="ci-price">₩'+item.price.toLocaleString()+'</span>'
+      +'<span style="font-size:11px;color:var(--ink-mute)">×'+item.qty+'</span>'
+      +'</div></div>'
+      +'<button class="ci-remove" onclick="removeCart('+i+')">✕</button>'
+      +'</div>';
+  }).join('');
+  total.textContent = '₩'+sum.toLocaleString();
+}
+function removeCart(i){
+  state.cart.splice(i,1); saveCart(); updateCartBadge(); renderCart();
+  toast('장바구니에서 삭제했습니다.');
+}
+function addToCart(){
+  var bk = state.currentBook;
+  var fmt = state.currentFmt;
+  var price = bk.price[fmt];
+  var qty = parseInt(document.getElementById('qty-val').value)||1;
+  var exists = state.cart.find(function(c){return c.bookId===bk.id&&c.fmt===fmt;});
+  if(exists){ exists.qty += qty; }
+  else { state.cart.push({bookId:bk.id, fmt:fmt, price:price, qty:qty}); }
+  saveCart(); updateCartBadge();
+  toast('🛒 장바구니에 추가했습니다. ('+FORMAT_INFO[fmt].label+')');
+}
+function buyNow(){ addToCart(); toggleCart(); }
+function checkout(){
+  var user = ACORN_DB.getUser();
+  if(!user){
+    if(confirm('결제하려면 로그인이 필요합니다.\n내 서재(MyPage)에서 로그인하시겠습니까?')){
+      localStorage.setItem('acorn_pending_checkout','1');
+      window.location.href = 'mypage.html';
+    }
+    return;
+  }
+  if(!state.cart.length){ toast('장바구니가 비어 있습니다.'); return; }
+  var orderId = 'ACO-' + Date.now();
+  var now = new Date();
+  var ds = now.getFullYear() + '.' + String(now.getMonth()+1).padStart(2,'0') + '.' + String(now.getDate()).padStart(2,'0');
+  var total = state.cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
+  var items = state.cart.map(function(c){
+    var bk = BOOKS.find(function(b){ return b.id === c.bookId; }) || {};
+    return { bookId:c.bookId, title:bk.title||c.bookId, format:c.fmt, price:c.price, qty:c.qty,
+             coverColor:bk.coverColor||'#7A1F2B', coverEmoji:bk.coverEmoji||'\uD83D\uDCDA',
+             cat:bk.cat||'', authors:bk.authors?bk.authors.map(function(a){return a.name;}).join(', '):'',
+             formatLabel:(FORMAT_INFO[c.fmt]||{label:c.fmt}).ico+' '+(FORMAT_INFO[c.fmt]||{label:c.fmt}).label };
+  });
+  ACORN_DB.addOrder({ orderId:orderId, date:ds, items:items, total:total, status:'completed', userId:user.id });
+  items.forEach(function(item){
+    if(item.format !== 'paper'){
+      ACORN_DB.addToLibrary({ bookId:item.bookId, format:item.format, title:item.title,
+        coverColor:item.coverColor, coverEmoji:item.coverEmoji, cat:item.cat, authors:item.authors,
+        purchasedAt:ds, progress:0, orderId:orderId });
+    }
+  });
+  state.cart = []; ACORN_DB.clearCart(); updateCartBadge();
+  document.getElementById('cart-overlay').classList.remove('on');
+  document.getElementById('cart-drawer').classList.remove('on');
+  toast('\u2713 결제 완료! \u20A9' + total.toLocaleString() + ' · 주문번호 ' + orderId);
+  setTimeout(function(){
+    if(confirm('\u2713 결제가 완료되었습니다!\n\u20A9' + total.toLocaleString() + '\n\n내 서재(MyPage)에서 구매 도서를 확인하시겠습니까?')){
+      window.location.href = 'mypage.html';
+    }
+  }, 300);
+}
+function changeQty(d){
+  var el = document.getElementById('qty-val');
+  el.value = Math.max(1, parseInt(el.value||1)+d);
+}
+
+/* ══════ LIST ══════ */
+var currentBooks = [];
+function showList(){
+  document.getElementById('page-list').classList.add('on');
+  document.getElementById('page-detail').classList.remove('on');
+  document.getElementById('cat-bar').style.display = '';
+  renderBookGrid(currentBooks);
+}
+function filterCat(cat, btn){
+  state.currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  applyFilters();
+}
+function onSearch(q){
+  var lq = q.toLowerCase();
+  var filtered = BOOKS.filter(function(b){
+    return b.title.toLowerCase().includes(lq)
+      || b.authors.map(function(a){return a.name;}).join(' ').toLowerCase().includes(lq)
+      || b.cat.toLowerCase().includes(lq);
+  });
+  renderBookGrid(filtered);
+}
+function applyFilters(){
+  var fmts = Array.from(document.querySelectorAll('.fp-item input[type=checkbox]:checked')).map(function(c){return c.value;});
+  var books = BOOKS.filter(function(b){
+    if (state.currentCat !== 'all' && b.cat !== state.currentCat) return false;
+    if (fmts.some(function(f){return ['paper','ebook','epub','audio','lecture'].includes(f);})){
+      if (!fmts.some(function(f){return b.formats.includes(f);})) return false;
+    }
+    return true;
+  });
+  currentBooks = books;
+  renderBookGrid(books);
+}
+function sortBooks(mode){
+  var sorted = currentBooks.slice();
+  if (mode==='popular') sorted.sort(function(a,b){return b.reviews-a.reviews;});
+  else if (mode==='price_asc') sorted.sort(function(a,b){return (a.price.paper||99999)-(b.price.paper||99999);});
+  else if (mode==='price_desc') sorted.sort(function(a,b){return (b.price.paper||0)-(a.price.paper||0);});
+  renderBookGrid(sorted);
+}
+function renderBookGrid(books){
+  var grid = document.getElementById('book-grid');
+  var cnt  = document.getElementById('books-count');
+  currentBooks = books;
+  cnt.innerHTML = '전체 <b>'+books.length+'</b>종';
+  grid.innerHTML = books.map(function(b){
+    var fmtBadges = b.formats.map(function(f){
+      return '<span class="fmt-b '+f+'">'+FORMAT_INFO[f].label+'</span>';
+    }).join('');
+    var priceMin = Math.min.apply(null, Object.values(b.price));
+    var statusTxt = b.status==='soon' ? '<span style="font-size:10.5px;color:var(--gold-soft);font-family:var(--mono)">출간 예정</span>' : '';
+    return '<div class="bk-card" onclick="showDetail(\''+b.id+'\')">'
+      +'<div class="bk-cover" style="background:'+b.coverColor+'">'
+      +b.coverEmoji
+      +'<div class="bk-format-badges">'+fmtBadges+'</div>'
+      +'</div>'
+      +'<div class="bk-body">'
+      +'<div class="bk-cat">'+b.cat+'</div>'
+      +'<div class="bk-title">'+b.title+'</div>'
+      +'<div class="bk-author">'+b.authors.map(function(a){return a.name+' '+a.role;}).join(' · ')+'</div>'
+      +(b.status==='available'
+        ? '<div class="bk-price">₩'+priceMin.toLocaleString()+'~</div>'
+        : '<div style="height:4px"></div>'+statusTxt)
+      +'</div></div>';
+  }).join('');
+}
+
+/* ══════ DETAIL ══════ */
+function showDetail(id){
+  var bk = BOOKS.find(function(b){return b.id===id;});
+  if(!bk) return;
+  state.currentBook = bk;
+  state.currentFmt = bk.formats[0];
+
+  document.getElementById('page-list').classList.remove('on');
+  document.getElementById('page-detail').classList.add('on');
+  document.getElementById('cat-bar').style.display = '';
+  window.scrollTo(0,0);
+
+  // 브레드크럼
+  document.getElementById('bc-cat').textContent = bk.cat;
+  document.getElementById('bc-title').textContent = bk.title.slice(0,20)+(bk.title.length>20?'…':'');
+
+  // 표지
+  var cover = document.getElementById('det-cover');
+  cover.style.background = bk.coverColor;
+  cover.textContent = bk.coverEmoji;
+
+  // 형태 목록 (좌측)
+  var fmtList = document.getElementById('det-format-list');
+  fmtList.innerHTML = bk.formats.map(function(f){
+    var fi = FORMAT_INFO[f];
+    return '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-mute);padding:4px 0">'
+      +'<span>'+fi.ico+'</span><span>'+fi.label+'</span>'
+      +(bk.price[f] ? '<span style="font-family:var(--mono);font-size:11.5px;margin-left:auto;color:var(--ink)">₩'+bk.price[f].toLocaleString()+'</span>' : '')
+      +'</div>';
+  }).join('');
+
+  // 메타
+  document.getElementById('det-cat').textContent = bk.cat;
+  document.getElementById('det-title').textContent = bk.title;
+  var authorHtml = bk.authors.map(function(a){return '<b>'+a.name+'</b> '+a.role;}).join(' · ');
+  if(bk.translators.length) authorHtml += ' &nbsp;|&nbsp; '+bk.translators.map(function(t){return '<b>'+t.name+'</b> '+t.role;}).join(' · ');
+  document.getElementById('det-author-row').innerHTML = authorHtml;
+  var ratingEl = document.getElementById('det-rating');
+  var reviewEl = document.getElementById('det-review-cnt');
+  if(bk.rating){ ratingEl.textContent = bk.rating; reviewEl.textContent = '('+bk.reviews+'개 리뷰)'; }
+  else { ratingEl.textContent = '—'; reviewEl.textContent = '(출간 전)'; }
+
+  // 간략 정보
+  document.getElementById('det-brief').innerHTML =
+    '출판사: <b>에이콘출판사</b> &nbsp;|&nbsp; 출간: <b>'+bk.pub+'</b> &nbsp;|&nbsp; 페이지: <b>'+bk.pages+'p</b><br>'
+    +'ISBN: <b>'+bk.isbn+'</b>';
+
+  // 구매 박스
+  renderBuyBox(bk, state.currentFmt);
+
+  // 외부 채널
+  var extHtml = '';
+  if(bk.extChannels && bk.extChannels.length){
+    extHtml = '<div class="external-channels"><div class="ext-title">다른 채널에서 구매</div><div class="ext-links">'
+      + bk.extChannels.map(function(ch){
+        var info = EXT_NAMES[ch];
+        return '<a href="'+info.url+'" target="_blank" class="ext-link">'+info.name+' ↗</a>';
+      }).join('') + '</div></div>';
+  }
+  document.getElementById('ext-channels').innerHTML = extHtml;
+
+  // 탭 패널 리셋
+  document.querySelectorAll('.dtab').forEach(function(b){b.classList.remove('on');});
+  document.querySelectorAll('.dtab-panel').forEach(function(p){p.classList.remove('on');});
+  document.querySelector('.dtab[data-dtab="intro"]').classList.add('on');
+  document.getElementById('dtab-intro').classList.add('on');
+
+  // 도서 소개
+  document.getElementById('det-intro-body').innerHTML = bk.intro;
+
+  // 저역자
+  var authHtml = bk.authors.concat(bk.translators).map(function(a){
+    var initials = a.name.slice(-2);
+    return '<div class="author-card">'
+      +'<div class="author-avatar">'+initials+'</div>'
+      +'<div><div class="author-name">'+a.name+'</div>'
+      +'<div class="author-role">'+a.role+'자</div>'
+      +'<div class="author-bio">'+a.bio+'</div></div>'
+      +'</div>';
+  }).join('');
+  document.getElementById('det-authors-body').innerHTML = authHtml;
+
+  // 목차
+  var tocHtml = bk.toc.map(function(part, pi){
+    var chaps = part.chapters.map(function(c){
+      return '<div class="toc-item"><span class="toc-ch">'+c.ch+'</span><span>'+c.title+'</span><span class="toc-pg">'+c.page+'p</span></div>';
+    }).join('');
+    return '<div class="toc-part">'
+      +'<div class="toc-part-title"><span style="font-family:var(--mono);font-size:11px;color:var(--burgundy);margin-right:4px">'+(pi+1).toString().padStart(2,'0')+'</span>'+part.part+'</div>'
+      +'<div class="toc-items">'+chaps+'</div>'
+      +'</div>';
+  }).join('');
+  document.getElementById('det-toc-body').innerHTML = tocHtml;
+
+  // 영상
+  document.getElementById('det-video-meta').textContent = bk.title.slice(0,20)+' — 소개 영상 · 출간 후 공개';
+  var vlistHtml = bk.videos.map(function(v){
+    return '<div class="vcard" onclick="toast(\'출간 후 영상이 공개됩니다.\')">'
+      +'<div class="vcard-thumb">▶</div>'
+      +'<div><div class="vcard-title">'+v.title+'</div><div class="vcard-meta">'+v.duration+'</div></div>'
+      +'</div>';
+  }).join('');
+  document.getElementById('det-video-list').innerHTML = vlistHtml;
+
+  // 오류 신고
+  var storedErr = JSON.parse(localStorage.getItem('acorn_err_'+bk.id)||'[]');
+  var allErr = bk.errata.concat(storedErr);
+  renderErrList(allErr);
+
+  // Q&A
+  var storedQA = JSON.parse(localStorage.getItem('acorn_qa_'+bk.id)||'[]');
+  renderQAList(bk.qa.concat(storedQA));
+}
+
+function renderBuyBox(bk, fmt){
+  state.currentFmt = fmt;
+  // 형태 탭
+  var tabsHtml = bk.formats.map(function(f){
+    var fi = FORMAT_INFO[f];
+    return '<button class="fmt-tab'+(f===fmt?' on':'')+(bk.status==='soon'?' disabled':'')+'" onclick="selectFmt(\''+f+'\')">'
+      +'<span class="fmt-ico">'+fi.ico+'</span>'+fi.label+'</button>';
+  }).join('');
+  document.getElementById('format-tabs').innerHTML = tabsHtml;
+
+  var price = bk.price[fmt];
+  document.getElementById('det-price').textContent = price ? '₩'+price.toLocaleString() : '출간 예정';
+  document.getElementById('det-price-orig').textContent = '';
+  document.getElementById('det-price-dc').textContent = '';
+  document.getElementById('det-price-desc').textContent = FORMAT_INFO[fmt].desc;
+
+  // 수량은 종이책만
+  document.getElementById('det-qty-row').style.display = fmt==='paper' ? 'flex' : 'none';
+}
+function selectFmt(fmt){
+  renderBuyBox(state.currentBook, fmt);
+}
+
+function switchDTab(name, btn){
+  document.querySelectorAll('.dtab').forEach(function(b){b.classList.remove('on');});
+  document.querySelectorAll('.dtab-panel').forEach(function(p){p.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('dtab-'+name).classList.add('on');
+}
+
+/* ── 오류 신고 ── */
+function renderErrList(items){
+  var el = document.getElementById('err-list');
+  if(!items.length){
+    el.innerHTML = '<div style="padding:20px;text-align:center;font-size:12.5px;color:var(--ink-mute);background:var(--paper-light);border:1.5px dashed var(--rule);border-radius:8px">등록된 정오표가 없습니다.</div>';
+    return;
+  }
+  el.innerHTML = items.map(function(it){
+    var typeLabel = {fix:'정오표',note:'안내',update:'업데이트'}[it.type]||'정보';
+    return '<div class="err-item">'
+      +'<span style="font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);white-space:nowrap;min-width:60px;padding-top:2px">'+(it.page||it.date||'')+'</span>'
+      +'<span class="err-type-badge '+(it.type==='fix'?'fix':'note')+'">'+typeLabel+'</span>'
+      +'<div style="flex:1;font-size:13px;color:var(--ink-soft)">'+it.content+'</div>'
+      +'</div>';
+  }).join('');
+}
+function submitErr(){
+  var bk = state.currentBook;
+  var type = document.getElementById('err-type').value.trim();
+  var page = document.getElementById('err-page').value.trim();
+  var orig = document.getElementById('err-orig').value.trim();
+  var fix  = document.getElementById('err-fix').value.trim();
+  if(!orig||!fix){ toast('⚠ 원문과 수정안을 입력해주세요.'); return; }
+  var today = new Date(); var ds = today.getFullYear()+'.'+(today.getMonth()+1).toString().padStart(2,'0')+'.'+today.getDate().toString().padStart(2,'0');
+  var stored = JSON.parse(localStorage.getItem('acorn_err_'+bk.id)||'[]');
+  stored.push({type:'note',date:ds,page:page,content:(type?'['+type+'] ':'')+orig+' → '+fix});
+  localStorage.setItem('acorn_err_'+bk.id, JSON.stringify(stored));
+  ['err-type','err-page','err-orig','err-fix'].forEach(function(id){document.getElementById(id).value='';});
+  renderErrList(bk.errata.concat(stored));
+  toast('✓ 오류 신고가 접수되었습니다.');
+}
+
+/* ── 독자 문의 ── */
+function renderQAList(items){
+  var el = document.getElementById('qa-list');
+  if(!items.length){
+    el.innerHTML = '<div style="padding:20px;text-align:center;font-size:12.5px;color:var(--ink-mute);background:var(--paper-light);border:1.5px dashed var(--rule);border-radius:8px">등록된 문의가 없습니다.</div>';
+    return;
+  }
+  el.innerHTML = items.map(function(it){
+    return '<div class="qa-item">'
+      +'<div class="qa-q">'+it.q+'</div>'
+      +(it.a ? '<div class="qa-a">'+it.a+'</div>' : '<div style="font-size:11px;color:var(--ink-mute);margin-top:6px;font-family:var(--mono)">답변 대기 중</div>')
+      +'<div class="qa-meta">'+(it.date||'')+(it.author?' · '+it.author:'')+'</div>'
+      +'</div>';
+  }).join('');
+}
+function submitQA(){
+  var bk = state.currentBook;
+  var name = (document.getElementById('qa-name').value||'').trim()||'익명 독자';
+  var q = document.getElementById('qa-q').value.trim();
+  if(!q){ toast('⚠ 문의 내용을 입력해주세요.'); return; }
+  var today = new Date(); var ds = today.getFullYear()+'.'+(today.getMonth()+1).toString().padStart(2,'0')+'.'+today.getDate().toString().padStart(2,'0');
+  var stored = JSON.parse(localStorage.getItem('acorn_qa_'+bk.id)||'[]');
+  stored.unshift({q:q, a:'', date:ds, author:name});
+  localStorage.setItem('acorn_qa_'+bk.id, JSON.stringify(stored));
+  document.getElementById('qa-name').value=''; document.getElementById('qa-q').value='';
+  renderQAList(bk.qa.concat(stored));
+  toast('✓ 문의가 접수되었습니다. 7영업일 이내 답변드립니다.');
+}
+
+/* ── 토스트 ── */
+var toastTimer;
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){t.classList.remove('on');}, 2800);
+}
+
+/* ── 헤더 로그인 상태 ── */
+function handleHeaderLogin(e){
+  var user = ACORN_DB.getUser();
+  if(user){
+    e.preventDefault();
+    window.location.href = 'mypage.html';
+  }
+}
+function updateHeaderUser(){
+  var user = ACORN_DB.getUser();
+  var btn = document.getElementById('hd-login-btn');
+  if(!btn) return;
+  if(user){
+    var initial = user.name ? user.name.slice(0,1) : '독';
+    btn.querySelector('.hd-login-avatar').style.background = 'var(--gold)';
+    btn.querySelector('.hd-login-avatar').style.color = 'var(--burgundy-deep)';
+    btn.querySelector('.hd-login-avatar').textContent = initial;
+    btn.querySelector('.hd-login-label').textContent = (user.name||'내 서재') + ' ▾';
+  }
+}
+
+/* ── 관리자 등록 도서 병합 ── */
+(function mergeAdminBooks(){
+  var adminBooks = ACORN_DB.getBooks();
+  if(!adminBooks.length) return;
+  adminBooks.forEach(function(ab){
+    var exists = BOOKS.find(function(b){ return b.id === String(ab.id) || b.id === 'bm'+ab.id; });
+    if(!exists){
+      var formats = [];
+      var rawPrice = parseInt((String(ab.price||'0')).replace(/,/g,''))||0;
+      var rawEbook = parseInt((String(ab.ebook||'0')).replace(/,/g,''))||0;
+      if(rawPrice) formats.push('paper');
+      if(rawEbook) formats.push('ebook');
+      BOOKS.push({
+        id:'bm'+ab.id, cat:ab.cat||'기타', title:ab.title, subtitle:ab.sub||'',
+        authors:[{name:ab.auth||ab.aname||'', role:'저', bio:ab.abio||''}], translators:[],
+        coverColor:'linear-gradient(135deg,var(--burgundy),var(--burgundy-deep))',
+        coverEmoji:'\uD83D\uDCDA',
+        price:{paper:rawPrice, ebook:rawEbook},
+        formats:formats.length?formats:['paper'], pages:ab.pages||0, pub:ab.pub||'',
+        isbn:ab.isbn||'', status:ab.status==='active'?'available':'soon',
+        rating:0, reviews:0, intro:'<p>'+ab.title+'</p>', toc:[], errata:[], qa:[], videos:[],
+        extChannels:['kyobo','yes24','aladin','ridi'],
+      });
+    }
+  });
+})();
+
+/* ── 초기화 ── */
+(function init(){
+  currentBooks = BOOKS.slice();
+  renderBookGrid(BOOKS);
+  updateCartBadge();
+  updateHeaderUser();
+  // 대기 중인 결제 처리
+  if(localStorage.getItem('acorn_pending_checkout')==='1' && ACORN_DB.isLoggedIn()){
+    localStorage.removeItem('acorn_pending_checkout');
+    if(state.cart.length) setTimeout(function(){ toggleCart(); toast('로그인 완료! 결제를 진행해주세요.'); }, 600);
+  }
+})();
+</script>
+</body>
+</html>
