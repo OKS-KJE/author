@@ -603,7 +603,7 @@ body::after{
       <div class="tag">출판사 스튜디오 · Admin</div>
       <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">
         <a class="side-back" href="index.html" style="margin-top:0">← 서점 페이지로</a>
-        <a class="side-back" href="author-portal.html" style="margin-top:0">← 저자 포털로</a>
+        <a class="side-back" href="author-portal.html" style="margin-top:0" onclick="localStorage.setItem('acornon_autologin',JSON.stringify({email:'admin@acornpub.co.kr',name:'에이콘 관리자',via:'admin-studio'}))">← 저자 포털로</a>
       </div>
     </div>
 
@@ -664,7 +664,7 @@ body::after{
           <span class="search-key">⌘K</span>
         </div>
         <a href="index.html" title="서점 페이지" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--rule);border-radius:6px;font-size:11.5px;font-weight:600;color:var(--ink-mute);text-decoration:none;transition:all .15s;white-space:nowrap" onmouseover="this.style.borderColor='var(--burgundy)';this.style.color='var(--burgundy)'" onmouseout="this.style.borderColor='var(--rule)';this.style.color='var(--ink-mute)'">🛒 서점</a>
-        <a href="author-portal.html" title="저자 포털" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--rule);border-radius:6px;font-size:11.5px;font-weight:600;color:var(--ink-mute);text-decoration:none;transition:all .15s;white-space:nowrap" onmouseover="this.style.borderColor='var(--burgundy)';this.style.color='var(--burgundy)'" onmouseout="this.style.borderColor='var(--rule)';this.style.color='var(--ink-mute)'">✎ 저자 포털</a>
+        <a href="author-portal.html" title="저자 포털" onclick="localStorage.setItem('acornon_autologin',JSON.stringify({email:'admin@acornpub.co.kr',name:'에이콘 관리자',via:'admin-studio'}))" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--rule);border-radius:6px;font-size:11.5px;font-weight:600;color:var(--ink-mute);text-decoration:none;transition:all .15s;white-space:nowrap" onmouseover="this.style.borderColor='var(--burgundy)';this.style.color='var(--burgundy)'" onmouseout="this.style.borderColor='var(--rule)';this.style.color='var(--ink-mute)'">✎ 저자 포털</a>
         <button class="icon-btn" title="알림"><span style="font-family:var(--display);font-style:italic">⏱</span><span class="dot"></span></button>
         <button class="icon-btn" title="도움말">?</button>
       </div>
