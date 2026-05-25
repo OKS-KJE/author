@@ -2024,9 +2024,24 @@ function _doEnterPortal(session) {
     });
   }
 
+  // ── 자동 로그인: index 또는 admin-studio에서 넘어온 경우 ──
+  try {
+    const autoRaw = localStorage.getItem('acornon_autologin');
+    if (autoRaw) {
+      localStorage.removeItem('acornon_autologin'); // 1회용 플래그 즉시 삭제
+      const auto = JSON.parse(autoRaw);
+      if (auto && auto.email) {
+        const session = { email: auto.email, name: auto.name || auto.email.split('@')[0], loggedIn: true, loginAt: new Date().toISOString(), via: auto.via || 'auto' };
+        saveSession(session);
+        _doEnterPortal(session); // 로그인 화면 없이 즉시 진입
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // ── 기존 세션이 있으면 자동 진입 ──
   const session = getSession();
   if (session && session.loggedIn && session.email) {
-    // 이미 로그인 → 환영 화면 잠깐 보여주고 자동 진입
     _showWelcomeState(session);
     setTimeout(() => _doEnterPortal(session), 800);
   }
