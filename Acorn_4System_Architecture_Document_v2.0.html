@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acorn 4-System Architecture — Integrated Design Document v2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;0,700;0,900;1,300;1,400;1,600&family=Noto+Serif+KR:wght@300;400;500;600;700&family=Pretendard:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F5EEE1;--paper-deep:#EBE1CD;--paper-light:#FBF6EC;
+  --ink:#1C2028;--ink-soft:#3A3D45;--ink-mute:#6B6B68;
+  --rule:#C9BFA8;--rule-soft:#D8CFBB;
+  --burgundy:#7A1F2B;--burgundy-deep:#5A1520;
+  --gold:#B89B54;--gold-soft:#D4BE85;--forest:#2D4A3A;
+  --ocean:#1A6FA8;--warning:#C97C2D;
+  --d:'Fraunces',serif;--s:'Georgia',serif;
+  --p:'Pretendard',-apple-system,sans-serif;--m:'JetBrains Mono',monospace;
+  --ca:#1C2028;--cr:#7A1F2B;--cb:#1A6FA8;--cg:#2D4A3A;
+}
+body{font-family:var(--p);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.65}
+@media print{.np{display:none!important}.pg{page-break-before:always}section{page-break-inside:avoid}}
+.fnav{position:fixed;right:18px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px;z-index:200}
+.fnav a{width:7px;height:7px;border-radius:50%;background:var(--rule);display:block;transition:all .15s}
+.fnav a.on{background:var(--burgundy);transform:scale(1.5)}
+@media print{.fnav{display:none}}
+.cover{background:var(--ink);min-height:100vh;display:flex;flex-direction:column;padding:80px 100px;position:relative;overflow:hidden}
+.cover::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--burgundy),var(--gold),var(--forest),var(--ocean))}
+.cbg{position:absolute;right:-60px;top:50%;transform:translateY(-50%);opacity:.025;font-family:var(--d);font-size:260px;font-weight:900;font-style:italic;color:#fff;pointer-events:none}
+.ctag{font-family:var(--m);font-size:10px;letter-spacing:.28em;color:var(--gold-soft);text-transform:uppercase;margin-bottom:28px}
+.ctitle{font-family:var(--s);font-size:52px;font-weight:700;color:#fff;line-height:1.15;margin-bottom:16px}
+.ctitle em{font-style:italic;font-family:var(--d);color:var(--gold);font-weight:400}
+.csub{font-family:var(--d);font-style:italic;font-size:18px;color:rgba(245,238,225,.5);margin-bottom:64px}
+.capps{display:flex;gap:18px;margin-bottom:60px;flex-wrap:wrap}
+.capp{padding:13px 18px;border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:12px}
+.capp .l{font-family:var(--m);font-size:9px;letter-spacing:.18em;color:rgba(255,255,255,.32);text-transform:uppercase;margin-bottom:5px}
+.capp .n{font-family:var(--s);font-weight:700;color:#fff;font-size:13.5px;margin-bottom:2px}
+.capp .f{font-family:var(--m);font-size:10px;color:var(--gold-soft)}
+.cmeta{display:flex;gap:36px;border-top:1px solid rgba(255,255,255,.1);padding-top:22px;margin-top:auto;flex-wrap:wrap}
+.cmeta .l{font-family:var(--m);font-size:9px;letter-spacing:.16em;color:rgba(255,255,255,.28);text-transform:uppercase;margin-bottom:4px}
+.cmeta .v{font-size:12.5px;color:rgba(255,255,255,.65)}
+.sec{padding:64px 100px;position:relative}
+.sec:nth-child(even){background:var(--paper-light)}
+.stag{font-family:var(--m);font-size:9px;letter-spacing:.26em;color:var(--burgundy);text-transform:uppercase;margin-bottom:8px}
+.stitle{font-family:var(--s);font-size:28px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.ssub{font-size:13.5px;color:var(--ink-mute);margin-bottom:32px;max-width:600px;line-height:1.7}
+h3.sub{font-family:var(--s);font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--rule-soft)}
+h4.mini{font-family:var(--d);font-style:italic;font-size:11px;letter-spacing:.2em;color:var(--burgundy);text-transform:uppercase;margin:20px 0 9px}
+.call{border-left:3px solid var(--burgundy);padding:12px 16px;background:rgba(122,31,43,.04);border-radius:0 6px 6px 0;margin:12px 0;font-size:13px;color:var(--ink-soft);line-height:1.7}
+.call.gold{border-color:var(--gold);background:rgba(184,155,84,.05)}
+.call.forest{border-color:var(--forest);background:rgba(45,74,58,.04)}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:12px 0 20px}
+.tbl th{background:var(--ink);color:#fff;font-family:var(--m);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;padding:9px 11px;text-align:left}
+.tbl td{padding:9px 11px;border-bottom:1px solid var(--rule-soft);vertical-align:top;line-height:1.6}
+.tbl tr:hover td{background:var(--paper-deep)}
+code{font-family:var(--m);font-size:11.5px;background:rgba(122,31,43,.07);color:var(--burgundy);padding:1px 5px;border-radius:3px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:12px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin:12px 0}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:12px 0}
+.card{background:var(--paper-light);border:1px solid var(--rule);border-radius:7px;padding:16px 18px}
+.card h5{font-family:var(--s);font-size:13px;font-weight:700;color:var(--ink);margin-bottom:7px}
+.card p{font-size:12px;color:var(--ink-mute);margin:0;line-height:1.6}
+ul.ul{padding-left:0;list-style:none;display:flex;flex-direction:column;gap:4px;margin:6px 0}
+ul.ul li{font-size:12px;color:var(--ink-soft);padding-left:15px;position:relative;line-height:1.55}
+ul.ul li::before{content:"–";position:absolute;left:0;color:var(--burgundy);font-weight:700}
+.pill{display:inline-flex;align-items:center;font-family:var(--m);font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:100px}
+.dw{margin:18px 0;border:1px solid var(--rule);border-radius:9px;overflow:hidden;background:var(--paper-light)}
+.dh{background:var(--ink);padding:9px 17px;font-family:var(--m);font-size:9.5px;letter-spacing:.16em;color:var(--gold-soft);text-transform:uppercase}
+svg.diag{width:100%;height:auto;display:block}
+.pm{width:100%;border-collapse:collapse;font-size:11.5px}
+.pm th{background:var(--ink);color:#fff;font-family:var(--m);font-size:9px;letter-spacing:.07em;text-transform:uppercase;padding:8px 9px;text-align:center}
+.pm th:first-child{text-align:left;width:190px}
+.pm td{padding:8px 9px;border-bottom:1px solid var(--rule-soft);text-align:center}
+.pm td:first-child{text-align:left;font-weight:600;font-size:12px}
+.pm td.sub{font-size:11px;color:var(--ink-mute);font-weight:400;padding-left:16px}
+.pm tr:hover td{background:var(--paper-deep)}
+.yes{color:var(--forest);font-weight:700;font-size:14px}
+.no{color:var(--rule);font-size:10px}
+.par{color:var(--warning);font-weight:700;font-size:12px}
+.kv{display:grid;grid-template-columns:175px 1fr;border:1px solid var(--rule);border-radius:7px;overflow:hidden;margin:9px 0}
+.kv .k{background:var(--paper-deep);padding:9px 12px;font-family:var(--m);font-size:10.5px;color:var(--burgundy);font-weight:600;border-bottom:1px solid var(--rule-soft)}
+.kv .v{padding:9px 12px;font-size:12.5px;color:var(--ink-soft);border-bottom:1px solid var(--rule-soft);line-height:1.55}
+.kv .k:last-of-type,.kv .v:last-of-type{border-bottom:none}
+.rm{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.rmph{padding:20px 18px;border-right:1px solid var(--rule)}
+.rmph:last-child{border-right:none}
+.rmtag{font-family:var(--m);font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.rmph h4{font-family:var(--s);font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:11px;line-height:1.3}
+.rmi{font-size:11.5px;color:var(--ink-mute);padding:3px 0;display:flex;gap:5px;line-height:1.5}
+.rmi::before{content:"·";color:var(--burgundy);font-weight:700;flex-shrink:0}
+.leg{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 22px}
+.legi{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-mute)}
+.legdot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+footer{background:var(--ink);color:rgba(245,238,225,.35);padding:20px 100px;display:flex;justify-content:space-between;font-family:var(--m);font-size:10px;letter-spacing:.05em}
+</style>
+</head>
+<body>
+<nav class="fnav np" id="fnav">
+  <a href="#cv"></a><a href="#s1"></a><a href="#s2"></a><a href="#s3"></a>
+  <a href="#s4"></a><a href="#s5"></a><a href="#s6"></a><a href="#s7"></a>
+  <a href="#s8"></a><a href="#s9"></a><a href="#s10"></a>
+</nav>
+
+<div class="cover" id="cv">
+  <div class="cbg">ACORN</div>
+  <div class="ctag">Acorn Publishing · Integrated System Architecture Document v2.0 · 2026.05.24</div>
+  <div class="ctitle">4-System<br><em>Architecture</em><br>Design Document</div>
+  <div class="csub">Admin Studio · Author Portal · Bookstore · MyPage — Unified Integration Design</div>
+  <div class="capps">
+    <div class="capp" style="border-color:rgba(184,155,84,.3)">
+      <div class="l">ADMIN</div><div class="n">Publisher Studio</div>
+      <div class="f">admin-studio.html · 354 KB · 4,741 lines</div>
+    </div>
+    <div class="capp" style="border-color:rgba(122,31,43,.3)">
+      <div class="l">AUTHOR</div><div class="n">Author Portal</div>
+      <div class="f">author-portal.html · 194 KB · 2,876 lines</div>
+    </div>
+    <div class="capp" style="border-color:rgba(26,111,168,.3)">
+      <div class="l">STORE</div><div class="n">Acorn Bookstore</div>
+      <div class="f">acorn-bookstore.html · 71 KB · 1,300 lines</div>
+    </div>
+    <div class="capp" style="border-color:rgba(45,74,58,.3)">
+      <div class="l">READER</div><div class="n">Reader Library</div>
+      <div class="f">mypage.html · 133 KB · 2,924 lines</div>
+    </div>
+  </div>
+  <div class="cmeta">
+    <div><div class="l">Shared Data</div><div class="v">ACORN_DB / localStorage 7 Keys</div></div>
+    <div><div class="l">User Roles</div><div class="v">Admin · Author · Reader</div></div>
+    <div><div class="l">AI Integration</div><div class="v">Anthropic Claude Sonnet</div></div>
+    <div><div class="l">External APIs</div><div class="v">KDP · ICount ERP · Bookstore API</div></div>
+    <div><div class="l">Classification</div><div class="v">Internal Technical Document · Confidential</div></div>
+  </div>
+</div>
+<!-- §1 -->
+<section class="sec" id="s1">
+<div class="stag">§ 01 · System Context</div>
+<div class="stitle">System Context Diagram</div>
+<div class="ssub">4 HTML apps and external systems are connected through the ACORN_DB (localStorage) shared data layer.</div>
+<div class="dw"><div class="dh">— System Context Map —</div>
+<svg viewBox="0 0 900 540" class="diag" xmlns="http://www.w3.org/2000/svg" style="padding:22px;background:var(--paper-light)">
+<defs>
+<marker id="a0" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#C9BFA8"/></marker>
+<marker id="a1" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#B89B54"/></marker>
+<marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#7A1F2B"/></marker>
+<marker id="a3" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#1A6FA8"/></marker>
+<marker id="a4" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2D4A3A"/></marker>
+<filter id="sh"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity=".1"/></filter>
+</defs>
+<!-- ACORN_DB CENTER -->
+<rect x="310" y="205" width="280" height="110" rx="10" fill="#1C2028" filter="url(#sh)"/>
+<text x="450" y="240" text-anchor="middle" font-family="Fraunces,serif" font-style="italic" font-size="11" fill="rgba(245,238,225,.4)" letter-spacing="3">Shared Layer</text>
+<text x="450" y="264" text-anchor="middle" font-family="'Georgia',serif" font-weight="700" font-size="18" fill="white">ACORN_DB</text>
+<text x="450" y="283" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#B89B54">localStorage · 7 Keys</text>
+<text x="450" y="300" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(245,238,225,.35)">Same-browser session sharing</text>
+<!-- ADMIN top-left -->
+<rect x="20" y="20" width="200" height="120" rx="8" fill="#1C2028" filter="url(#sh)"/>
+<rect x="20" y="20" width="200" height="4" fill="#B89B54" rx="2"/>
+<text x="120" y="55" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#B89B54" letter-spacing="2">ADMIN STUDIO</text>
+<text x="120" y="74" text-anchor="middle" font-family="'Georgia',serif" font-weight="700" font-size="14" fill="white">Publisher Studio</text>
+<text x="120" y="92" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(245,238,225,.45)">admin-studio.html · 354 KB</text>
+<text x="120" y="108" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" fill="rgba(245,238,225,.5)">Admins×2 · Editors×7 · Designers×2 · Ops×3</text>
+<text x="120" y="128" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7EC89A">⚡ Claude Sonnet AI integrated</text>
+<!-- AUTHOR top-right -->
+<rect x="680" y="20" width="200" height="120" rx="8" fill="#3D0C12" filter="url(#sh)"/>
+<rect x="680" y="20" width="200" height="4" fill="#7A1F2B" rx="2"/>
+<text x="780" y="55" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(212,190,133,.8)" letter-spacing="2">AUTHOR PORTAL</text>
+<text x="780" y="74" text-anchor="middle" font-family="'Georgia',serif" font-weight="700" font-size="14" fill="white">Author Portal</text>
+<text x="780" y="92" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(245,238,225,.45)">author-portal.html · 194KB</text>
+<text x="780" y="108" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" fill="rgba(245,238,225,.5)">Contracted authors only · Email auth</text>
+<text x="780" y="128" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(212,190,133,.7)">adm_mr_* real-time receive</text>
+<!-- BOOKSTORE bottom-left -->
+<rect x="20" y="390" width="200" height="120" rx="8" fill="#0A2035" filter="url(#sh)"/>
+<rect x="20" y="390" width="200" height="4" fill="#1A6FA8" rx="2"/>
+<text x="120" y="425" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(91,200,245,.8)" letter-spacing="2">BOOKSTORE</text>
+<text x="120" y="444" text-anchor="middle" font-family="'Georgia',serif" font-weight="700" font-size="14" fill="white">Acorn Bookstore</text>
+<text x="120" y="462" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(245,238,225,.45)">acorn-bookstore.html · 71 KB</text>
+<text x="120" y="478" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" fill="rgba(245,238,225,.5)">Public · Book purchase · Cart</text>
+<text x="120" y="498" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#5BC8F5">checkout → ORDERS + LIBRARY</text>
+<!-- MYPAGE bottom-right -->
+<rect x="680" y="390" width="200" height="120" rx="8" fill="#0A1F16" filter="url(#sh)"/>
+<rect x="680" y="390" width="200" height="4" fill="#2D4A3A" rx="2"/>
+<text x="780" y="425" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(127,200,154,.8)" letter-spacing="2">MY PAGE</text>
+<text x="780" y="444" text-anchor="middle" font-family="'Georgia',serif" font-weight="700" font-size="14" fill="white">Reader Library</text>
+<text x="780" y="462" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(245,238,225,.45)">mypage.html · 133KB</text>
+<text x="780" y="478" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" fill="rgba(245,238,225,.5)">Reader Library·Purchases·통계</text>
+<text x="780" y="498" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7EC89A">LIBRARY + ORDERS merge render</text>
+<!-- ARROWS: Admin → ACORN_DB -->
+<path d="M220,80 L310,240" stroke="#B89B54" stroke-width="1.8" fill="none" marker-end="url(#a1)" stroke-dasharray="6,3"/>
+<text x="232" y="158" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#B89B54">ACORN_BOOKS ↓</text>
+<!-- Author → ACORN_DB (reads adm_mr_*) -->
+<path d="M680,80 L590,240" stroke="#7A1F2B" stroke-width="1.8" fill="none" marker-end="url(#a2)" stroke-dasharray="6,3"/>
+<text x="614" y="160" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#7A1F2B">adm_mr_* ↑</text>
+<!-- Bookstore → ACORN_DB -->
+<path d="M220,450 L310,290" stroke="#1A6FA8" stroke-width="1.8" fill="none" marker-end="url(#a3)" stroke-dasharray="6,3"/>
+<text x="208" y="378" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#1A6FA8">ORDERS·LIBRARY ↓</text>
+<!-- MyPage → ACORN_DB -->
+<path d="M680,450 L590,290" stroke="#2D4A3A" stroke-width="1.8" fill="none" marker-end="url(#a4)" stroke-dasharray="6,3"/>
+<text x="612" y="380" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#2D4A3A">USER ↕</text>
+<!-- Anthropic API (external) -->
+<rect x="350" y="20" width="200" height="50" rx="6" fill="rgba(45,74,58,.1)" stroke="rgba(45,74,58,.3)" stroke-width="1"/>
+<text x="450" y="42" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#2D4A3A" font-weight="600">Anthropic API</text>
+<text x="450" y="58" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(45,74,58,.65)">claude-sonnet · Proposal AI evaluation</text>
+<path d="M220,65 L350,45" stroke="rgba(45,74,58,.4)" stroke-width="1.2" fill="none" stroke-dasharray="4,3" marker-end="url(#a4)"/>
+<!-- External stores -->
+<rect x="350" y="480" width="200" height="50" rx="6" fill="rgba(26,111,168,.08)" stroke="rgba(26,111,168,.25)" stroke-width="1"/>
+<text x="450" y="502" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#1A6FA8" font-weight="600">External Bookstores</text>
+<text x="450" y="518" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(26,111,168,.6)">Kyobo · YES24 · Aladin · Ridi</text>
+<path d="M220,490 L350,505" stroke="rgba(26,111,168,.35)" stroke-width="1.2" fill="none" stroke-dasharray="4,3" marker-end="url(#a3)"/>
+<!-- Nav arrows between apps -->
+<path d="M220,80 C290,80 310,415 320,420" stroke="rgba(184,155,84,.25)" stroke-width="1.2" fill="none" stroke-dasharray="3,3" marker-end="url(#a1)"/>
+<path d="M680,450 L680,140" stroke="rgba(122,31,43,.2)" stroke-width="1.2" fill="none" stroke-dasharray="3,3" marker-end="url(#a2)"/>
+<path d="M220,450 C320,455 620,455 680,450" stroke="rgba(26,111,168,.2)" stroke-width="1.2" fill="none" stroke-dasharray="3,3" marker-end="url(#a3)"/>
+</svg></div>
+<div class="leg">
+  <div class="legi"><div class="legdot" style="background:#1C2028"></div> Admin Studio</div>
+  <div class="legi"><div class="legdot" style="background:#7A1F2B"></div> Author Portal</div>
+  <div class="legi"><div class="legdot" style="background:#1A6FA8"></div> Bookstore</div>
+  <div class="legi"><div class="legdot" style="background:#2D4A3A"></div> MyPage</div>
+  <div class="legi"><div class="legdot" style="background:rgba(45,74,58,.5)"></div> External Systems</div>
+</div>
+</section>
+<section class="sec" id="s2">
+<div class="stag">§ 02 · Component Architecture</div>
+<div class="stitle">Per-App Component Structure Map</div>
+<div class="ssub">Visualizes each HTML file's panel/section structure and core features.</div>
+<div class="dw"><div class="dh">— 4-App Component Structure —</div>
+<svg viewBox="0 0 900 680" class="diag" xmlns="http://www.w3.org/2000/svg" style="padding:20px;background:var(--paper-light)">
+<!-- ADMIN STUDIO -->
+<rect x="10" y="10" width="430" height="310" rx="8" fill="#1C2028"/>
+<rect x="10" y="10" width="430" height="4" fill="#B89B54" rx="2"/>
+<text x="30" y="35" font-family="'JetBrains Mono',monospace" font-size="9" fill="#B89B54" letter-spacing="2">ADMIN STUDIO</text>
+<text x="30" y="52" font-family="'Georgia',serif" font-weight="700" font-size="14" fill="white">Publisher Studio</text>
+<g transform="translate(22,62)">
+<rect x="0" y="0" width="122" height="40" rx="4" fill="rgba(255,255,255,.07)"/><text x="61" y="15" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">A.1 Dashboard</text><text x="61" y="30" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">KPI · Insights · Recent Orders</text>
+<rect x="130" y="0" width="122" height="40" rx="4" fill="rgba(255,255,255,.07)"/><text x="191" y="15" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">A.2 Proposal Mgmt</text><text x="191" y="30" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">Accept · AI Eval · Approve</text>
+<rect x="260" y="0" width="155" height="40" rx="4" fill="rgba(184,155,84,.15)" stroke="rgba(184,155,84,.3)" stroke-width="1"/><text x="337" y="15" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#B89B54">A.3 Project Mgmt ★</text><text x="337" y="30" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="white">6-tab unified mgmt</text>
+<rect x="0" y="48" width="415" height="24" rx="3" fill="rgba(184,155,84,.07)" stroke="rgba(184,155,84,.2)" stroke-width="1" stroke-dasharray="4,2"/>
+<text x="207" y="64" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(184,155,84,.8)">A.3 Sub-tabs: Project Info · Schedule · Files · Comms · Royalties · Multi-Revenue Channel Mgmt (adm_mr_* write)</text>
+<rect x="0" y="80" width="122" height="40" rx="4" fill="rgba(255,255,255,.07)"/><text x="61" y="95" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">A.4 Sales Mgmt</text><text x="61" y="110" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">P&L · BEP · By Channel</text>
+<rect x="130" y="80" width="122" height="40" rx="4" fill="rgba(255,255,255,.07)"/><text x="191" y="95" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">A.5 ePub Mgmt</text><text x="191" y="110" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">Supplements · Build</text>
+<rect x="260" y="80" width="155" height="40" rx="4" fill="rgba(255,255,255,.07)"/><text x="337" y="95" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">Book Mgmt</text><text x="337" y="110" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">List · Press Release · Carousel</text>
+<rect x="0" y="128" width="200" height="40" rx="4" fill="rgba(255,255,255,.05)"/><text x="100" y="143" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.35)">A.6 Master Data</text><text x="100" y="158" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(255,255,255,.5)">Books · Categories · Partners · Users</text>
+<rect x="208" y="128" width="207" height="40" rx="4" fill="rgba(255,255,255,.05)"/><text x="311" y="143" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.35)">A.7 Settings</text><text x="311" y="158" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="rgba(255,255,255,.5)">Notifications · Templates · RBAC</text>
+<rect x="0" y="176" width="415" height="26" rx="3" fill="rgba(45,74,58,.25)" stroke="rgba(45,74,58,.4)" stroke-width="1"/><text x="207" y="193" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#7EC89A">⚡ AI: Claude Sonnet · Proposal scoring · Reports · Press releases · Direct Anthropic API call</text>
+<rect x="0" y="210" width="415" height="26" rx="3" fill="rgba(184,155,84,.1)" stroke="rgba(184,155,84,.2)" stroke-width="1"/><text x="207" y="227" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#B89B54">ACORN_DB.setBooks(BM_BOOKS) — auto-sync on book register/edit → Bookstore reflects</text>
+</g>
+
+<!-- AUTHOR PORTAL -->
+<rect x="460" y="10" width="430" height="310" rx="8" fill="#3D0C12"/>
+<rect x="460" y="10" width="430" height="4" fill="#7A1F2B" rx="2"/>
+<text x="480" y="35" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(212,190,133,.8)" letter-spacing="2">AUTHOR PORTAL</text>
+<text x="480" y="52" font-family="'Georgia',serif" font-weight="700" font-size="14" fill="white">Author Portal</text>
+<g transform="translate(472,62)">
+<rect x="0" y="0" width="122" height="40" rx="4" fill="rgba(255,255,255,.07)"/><text x="61" y="15" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">대시보드</text><text x="61" y="30" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">KPI×5 · Royalties · Schedule</text>
+<rect x="130" y="0" width="122" height="40" rx="4" fill="rgba(122,31,43,.4)" stroke="rgba(122,31,43,.5)" stroke-width="1"/><text x="191" y="15" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(212,190,133,.8)">My Projects ★</text><text x="191" y="30" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="white">Multi-Revenue Status</text>
+<rect x="260" y="0" width="150" height="40" rx="4" fill="rgba(255,255,255,.07)"/><text x="335" y="15" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">Alerts · Events</text><text x="335" y="30" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">Unread badges · Feed</text>
+<rect x="0" y="48" width="410" height="24" rx="3" fill="rgba(122,31,43,.15)" stroke="rgba(122,31,43,.3)" stroke-width="1" stroke-dasharray="4,2"/>
+<text x="205" y="64" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(212,190,133,.7)">내 프로젝트 서브탭: Multi-Revenue Status · 출판일정 · 파일·원고 (adm_mr_* 읽기 전용)</text>
+<rect x="0" y="80" width="122" height="40" rx="4" fill="rgba(255,255,255,.07)"/><text x="61" y="95" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">Inquiry Mgmt</text><text x="61" y="110" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">4-step intake form</text>
+<rect x="130" y="80" width="122" height="40" rx="4" fill="rgba(255,255,255,.07)"/><text x="191" y="95" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">Author Branding</text><text x="191" y="110" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">Profile · Blurbs</text>
+<rect x="260" y="80" width="150" height="40" rx="4" fill="rgba(255,255,255,.07)"/><text x="335" y="95" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">Sales Rank · Reviews</text><text x="335" y="110" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">Stats view</text>
+<rect x="0" y="128" width="410" height="28" rx="3" fill="rgba(122,31,43,.2)" stroke="rgba(122,31,43,.35)" stroke-width="1"/>
+<text x="205" y="146" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(212,190,133,.8)">Login layer: email · password → ACORN_AUTHOR_SESSION save · logout clears</text>
+<rect x="0" y="164" width="410" height="28" rx="3" fill="rgba(45,74,58,.2)" stroke="rgba(45,74,58,.3)" stroke-width="1"/>
+<text x="205" y="182" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#7EC89A">window.storage event: detects adm_mr_* changes → real-time channel status update + toast</text>
+</g>
+
+<!-- BOOKSTORE -->
+<rect x="10" y="340" width="430" height="300" rx="8" fill="#0A2035"/>
+<rect x="10" y="340" width="430" height="4" fill="#1A6FA8" rx="2"/>
+<text x="30" y="365" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(91,200,245,.8)" letter-spacing="2">BOOKSTORE</text>
+<text x="30" y="382" font-family="'Georgia',serif" font-weight="700" font-size="14" fill="white">Acorn Bookstore</text>
+<g transform="translate(22,392)">
+<rect x="0" y="0" width="406" height="24" rx="3" fill="rgba(26,111,168,.2)" stroke="rgba(26,111,168,.35)" stroke-width="1"/>
+<text x="203" y="16" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5BC8F5">Header: Search · Cart (ACORN_CART) · Login btn (ACORN_USER) · Author Portal & Admin links</text>
+<rect x="0" y="32" width="406" height="20" rx="3" fill="rgba(26,111,168,.1)"/>
+<text x="203" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(91,200,245,.75)">Category bar: AI·ML / Programming / 3D·Design / Data / Business / Security</text>
+<rect x="0" y="60" width="195" height="48" rx="4" fill="rgba(255,255,255,.06)"/><text x="97" y="80" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">PAGE: Book List</text><text x="97" y="95" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="rgba(255,255,255,.7)">BOOKS + ACORN_BOOKS merged</text>
+<rect x="203" y="60" width="203" height="48" rx="4" fill="rgba(255,255,255,.06)"/><text x="304" y="80" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">PAGE: Book Detail</text><text x="304" y="95" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="rgba(255,255,255,.7)">Intro · TOC · Q&A · Errata</text>
+<rect x="0" y="116" width="406" height="40" rx="3" fill="rgba(26,111,168,.2)" stroke="rgba(26,111,168,.45)" stroke-width="1.5"/>
+<text x="203" y="133" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5BC8F5">Cart Drawer: ACORN_CART read/write</text>
+<text x="203" y="149" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#7EC89A">checkout() → save ACORN_ORDERS + ACORN_LIBRARY → redirect to mypage.html</text>
+<rect x="0" y="164" width="406" height="24" rx="3" fill="rgba(45,74,58,.2)" stroke="rgba(45,74,58,.3)" stroke-width="1"/>
+<text x="203" y="180" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#7EC89A">mergeAdminBooks(): ACORN_BOOKS → merged into BOOKS array (admin-registered books auto-displayed)</text>
+</g>
+
+<!-- MYPAGE -->
+<rect x="460" y="340" width="430" height="300" rx="8" fill="#0A1F16"/>
+<rect x="460" y="340" width="430" height="4" fill="#2D4A3A" rx="2"/>
+<text x="480" y="365" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(127,200,154,.8)" letter-spacing="2">MY PAGE</text>
+<text x="480" y="382" font-family="'Georgia',serif" font-weight="700" font-size="14" fill="white">Reader Library</text>
+<g transform="translate(472,392)">
+<rect x="0" y="0" width="406" height="24" rx="3" fill="rgba(45,74,58,.25)" stroke="rgba(45,74,58,.4)" stroke-width="1"/>
+<text x="203" y="16" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#7EC89A">Login → save ACORN_USER · updateUserUI() · mergeOrdersFromDB() · mergeLibraryFromDB()</text>
+<rect x="0" y="32" width="95" height="40" rx="4" fill="rgba(255,255,255,.06)"/><text x="47" y="48" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">대시보드</text><text x="47" y="63" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="rgba(255,255,255,.7)">KPI Stats</text>
+<rect x="103" y="32" width="95" height="40" rx="4" fill="rgba(45,74,58,.3)" stroke="rgba(45,74,58,.5)" stroke-width="1"/><text x="150" y="48" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7EC89A">My Library</text><text x="150" y="63" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="white">LIBRARY</text>
+<rect x="206" y="32" width="95" height="40" rx="4" fill="rgba(45,74,58,.3)" stroke="rgba(45,74,58,.5)" stroke-width="1"/><text x="253" y="48" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7EC89A">Purchases</text><text x="253" y="63" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="white">ORDERS</text>
+<rect x="309" y="32" width="97" height="40" rx="4" fill="rgba(255,255,255,.06)"/><text x="357" y="48" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">Reader Svc</text><text x="357" y="63" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="rgba(255,255,255,.7)">Q&A · Errata</text>
+<rect x="0" y="80" width="406" height="40" rx="3" fill="rgba(45,74,58,.15)" stroke="rgba(45,74,58,.3)" stroke-width="1"/>
+<text x="203" y="97" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#7EC89A">mergeOrdersFromDB(): ACORN_ORDERS → merged into purchases array</text>
+<text x="203" y="113" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#7EC89A">mergeLibraryFromDB(): ACORN_LIBRARY → merged into books array</text>
+<rect x="0" y="128" width="406" height="24" rx="3" fill="rgba(255,255,255,.04)"/>
+<text x="203" y="144" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(255,255,255,.5)">topbar: ← Acorn Bookstore · 알림 · Cart(서점이동) · 로그아웃</text>
+</g>
+</svg></div>
+</section>
+<section class="sec" id="s3">
+<div class="stag">§ 03 · ACORN_DB Data Layer</div>
+<div class="stitle">Shared Data Layer — ACORN_DB</div>
+<div class="ssub">The <code>ACORN_DB</code> object, embedded in every file, synchronizes data across apps via 7 localStorage keys.</div>
+<div class="dw"><div class="dh">— ACORN_DB Data Flow — Read / Write Directions —</div>
+<svg viewBox="0 0 860 400" class="diag" xmlns="http://www.w3.org/2000/svg" style="padding:24px;background:var(--paper-light)">
+<defs>
+<marker id="ar1" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#B89B54"/></marker>
+<marker id="ar2" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#7A1F2B"/></marker>
+<marker id="ar3" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#1A6FA8"/></marker>
+<marker id="ar4" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#2D4A3A"/></marker>
+</defs>
+<!-- Central Bus -->
+<rect x="300" y="155" width="260" height="90" rx="8" fill="#1C2028"/>
+<text x="430" y="186" text-anchor="middle" font-family="Fraunces,serif" font-style="italic" font-size="10" fill="rgba(245,238,225,.4)" letter-spacing="3">Shared Layer</text>
+<text x="430" y="208" text-anchor="middle" font-family="'Georgia',serif" font-weight="700" font-size="17" fill="white">ACORN_DB</text>
+<text x="430" y="227" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#B89B54">localStorage · browser-scoped · 7 keys</text>
+<!-- Keys floating -->
+<rect x="20" y="30" width="155" height="52" rx="5" fill="rgba(184,155,84,.12)" stroke="rgba(184,155,84,.35)" stroke-width="1"/>
+<text x="97" y="53" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#B89B54" font-weight="600">ACORN_BOOKS</text>
+<text x="97" y="71" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-mute)">Admin-registered book catalog</text>
+<path d="M175,56 L300,195" stroke="#B89B54" stroke-width="1.5" fill="none" marker-end="url(#ar1)" stroke-dasharray="5,3"/>
+<text x="205" y="118" font-family="'JetBrains Mono',monospace" font-size="8" fill="#B89B54">Admin → Store</text>
+
+<rect x="300" y="10" width="155" height="52" rx="5" fill="rgba(122,31,43,.1)" stroke="rgba(122,31,43,.3)" stroke-width="1"/>
+<text x="377" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#7A1F2B" font-weight="600">adm_mr_{ch}</text>
+<text x="377" y="51" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-mute)">6-channel operational status</text>
+<path d="M430,62 L430,155" stroke="#7A1F2B" stroke-width="1.5" fill="none" marker-end="url(#ar2)"/>
+<text x="438" y="115" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7A1F2B">Admin→Author</text>
+
+<rect x="685" y="30" width="155" height="52" rx="5" fill="rgba(45,74,58,.1)" stroke="rgba(45,74,58,.3)" stroke-width="1"/>
+<text x="762" y="53" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#2D4A3A" font-weight="600">ACORN_USER</text>
+<text x="762" y="71" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-mute)">Reader login session</text>
+<path d="M685,56 L560,195" stroke="#2D4A3A" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#ar4)"/>
+<text x="622" y="118" font-family="'JetBrains Mono',monospace" font-size="8" fill="#2D4A3A">MyPage → Store</text>
+
+<rect x="20" y="310" width="155" height="52" rx="5" fill="rgba(26,111,168,.1)" stroke="rgba(26,111,168,.3)" stroke-width="1"/>
+<text x="97" y="333" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#1A6FA8" font-weight="600">ACORN_CART</text>
+<text x="97" y="351" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-mute)">Cart</text>
+<path d="M175,336 L300,225" stroke="#1A6FA8" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#ar3)"/>
+<text x="190" y="278" font-family="'JetBrains Mono',monospace" font-size="8" fill="#1A6FA8">Store R/W</text>
+
+<rect x="195" y="345" width="150" height="44" rx="5" fill="rgba(26,111,168,.1)" stroke="rgba(26,111,168,.3)" stroke-width="1"/>
+<text x="270" y="364" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#1A6FA8" font-weight="600">ACORN_ORDERS</text>
+<text x="270" y="380" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-mute)">구매 이력</text>
+<path d="M370,245 L295,345" stroke="#1A6FA8" stroke-width="1.5" fill="none" marker-end="url(#ar3)"/>
+<path d="M345,367 L510,348" stroke="rgba(45,74,58,.5)" stroke-width="1.5" fill="none" marker-end="url(#ar4)"/>
+<text x="427" y="363" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#2D4A3A">→ MyPage</text>
+
+<rect x="518" y="345" width="150" height="44" rx="5" fill="rgba(45,74,58,.1)" stroke="rgba(45,74,58,.3)" stroke-width="1"/>
+<text x="593" y="364" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#2D4A3A" font-weight="600">ACORN_LIBRARY</text>
+<text x="593" y="380" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-mute)">디지털 서재</text>
+<path d="M490,245 L560,345" stroke="#1A6FA8" stroke-width="1.5" fill="none" marker-end="url(#ar3)"/>
+
+<rect x="685" y="310" width="155" height="52" rx="5" fill="rgba(122,31,43,.1)" stroke="rgba(122,31,43,.25)" stroke-width="1"/>
+<text x="762" y="330" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#7A1F2B" font-weight="600">ACORN_AUTHOR</text>
+<text x="762" y="345" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#7A1F2B" font-weight="600">_SESSION</text>
+<text x="762" y="360" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-mute)">Author Portal 세션</text>
+<path d="M685,336 L560,225" stroke="rgba(122,31,43,.4)" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#ar2)"/>
+<text x="655" y="278" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(122,31,43,.7)">Author R/W</text>
+</svg></div>
+<div class="kv">
+<div class="k">ACORN_BOOKS</div><div class="v"><code>BM_BOOKS[]</code> — Auto-saved when admin registers/edits books. Bookstore <code>mergeAdminBooks()</code> reads and merges into the default list. <span style="font-family:var(--m);font-size:9.5px;background:rgba(184,155,84,.12);color:#7A5A20;padding:1px 7px;border-radius:10px">Admin → Store</span></div>
+<div class="k">adm_mr_{ch}</div><div class="v"><code>{status, statusLabel, note, milestones, updatedAt}</code> — ch = paper|ebook|epub|audio|lecture|kdp. Set in Admin Multi-Revenue tab → Author Portal receives via <code>window.storage</code> event in real time. <span style="font-family:var(--m);font-size:9.5px;background:rgba(122,31,43,.1);color:var(--burgundy);padding:1px 7px;border-radius:10px">Admin → Author</span></div>
+<div class="k">ACORN_USER</div><div class="v"><code>{id, email, name, role, joinDate}</code> — Saved on MyPage login. Checked by Bookstore header for login state and payment auth. Deleted on <code>doLogout()</code>. <span style="font-family:var(--m);font-size:9.5px;background:rgba(45,74,58,.1);color:var(--forest);padding:1px 7px;border-radius:10px">MyPage ↔ Store</span></div>
+<div class="k">ACORN_CART</div><div class="v"><code>[{bookId, fmt, price, qty}]</code> — Bookstore cart. Saved via <code>saveCart()</code>, cleared after checkout via <code>clearCart()</code>. Used with <code>acorn_pending_checkout</code> for deferred-login checkout. <span style="font-family:var(--m);font-size:9.5px;background:rgba(26,111,168,.1);color:var(--ocean);padding:1px 7px;border-radius:10px">Store R/W</span></div>
+<div class="k">ACORN_ORDERS</div><div class="v"><code>[{orderId, date, items[], total, status, userId}]</code> — Purchase Complete 시 <code>addOrder()</code>로 unshift 저장. MyPage <code>mergeOrdersFromDB()</code>가 Purchases에 병합. Admin 대시보드 최근 주문 위젯에 표시. <span style="font-family:var(--m);font-size:9.5px;background:rgba(26,111,168,.1);color:var(--ocean);padding:1px 7px;border-radius:10px">Store → MyPage · Admin (read)</span></div>
+<div class="k">ACORN_LIBRARY</div><div class="v"><code>[{bookId, format, title, purchasedAt, progress, orderId}]</code> — 디지털 포맷(ebook·epub·audio·lecture) 구매 시에만 <code>addToLibrary()</code>. 중복 방지(bookId+format). MyPage My Library에 표시. <span style="font-family:var(--m);font-size:9.5px;background:rgba(26,111,168,.1);color:var(--ocean);padding:1px 7px;border-radius:10px">Store → MyPage</span></div>
+<div class="k">ACORN_AUTHOR_SESSION</div><div class="v"><code>{email, name, role, loginAt}</code> — Saved by <code>setAuthorSession()</code> on Author Portal login, cleared by <code>logoutAuthor()</code>. Planned migration to server-side JWT in Phase 1. <span style="font-family:var(--m);font-size:9.5px;background:rgba(122,31,43,.1);color:var(--burgundy);padding:1px 7px;border-radius:10px">Author R/W</span></div>
+</div>
+</section>
+<section class="sec" id="s4">
+<div class="stag">§ 04 · Navigation Map</div>
+<div class="stitle">Cross-File Navigation Map</div>
+<div class="ssub">Actual link paths and conditional routing logic between 4 files. Solid = direct link, Dashed = conditional redirect.</div>
+<div class="dw"><div class="dh">— Cross-File Navigation — Solid: Direct Link · Dashed: Conditional Redirect —</div>
+<svg viewBox="0 0 820 440" class="diag" xmlns="http://www.w3.org/2000/svg" style="padding:28px;background:var(--paper-light)">
+<defs>
+<marker id="nav0" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#6B6B68"/></marker>
+<marker id="nav1" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#C97C2D"/></marker>
+</defs>
+<!-- ADMIN -->
+<rect x="10" y="165" width="158" height="82" rx="7" fill="#1C2028"/>
+<rect x="10" y="165" width="158" height="3" fill="#B89B54" rx="1"/>
+<text x="89" y="193" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#B89B54" letter-spacing="1">ADMIN</text>
+<text x="89" y="212" text-anchor="middle" font-family="'Georgia',serif" font-size="13" fill="white" font-weight="700">Publisher Studio</text>
+<text x="89" y="230" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#B89B54">admin-studio.html</text>
+<!-- AUTHOR -->
+<rect x="10" y="310" width="158" height="82" rx="7" fill="#3D0C12"/>
+<rect x="10" y="310" width="158" height="3" fill="#7A1F2B" rx="1"/>
+<text x="89" y="338" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(212,190,133,.8)" letter-spacing="1">AUTHOR</text>
+<text x="89" y="357" text-anchor="middle" font-family="'Georgia',serif" font-size="13" fill="white" font-weight="700">Author Portal</text>
+<text x="89" y="375" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(212,190,133,.7)">author-portal.html</text>
+<!-- BOOKSTORE -->
+<rect x="330" y="45" width="158" height="82" rx="7" fill="#0A2035"/>
+<rect x="330" y="45" width="158" height="3" fill="#1A6FA8" rx="1"/>
+<text x="409" y="73" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(91,200,245,.8)" letter-spacing="1">BOOKSTORE</text>
+<text x="409" y="92" text-anchor="middle" font-family="'Georgia',serif" font-size="13" fill="white" font-weight="700">Acorn Bookstore</text>
+<text x="409" y="110" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#5BC8F5">acorn-bookstore.html</text>
+<!-- MYPAGE -->
+<rect x="600" y="165" width="158" height="82" rx="7" fill="#0A1F16"/>
+<rect x="600" y="165" width="158" height="3" fill="#2D4A3A" rx="1"/>
+<text x="679" y="193" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(127,200,154,.8)" letter-spacing="1">MY PAGE</text>
+<text x="679" y="212" text-anchor="middle" font-family="'Georgia',serif" font-size="13" fill="white" font-weight="700">Reader Library</text>
+<text x="679" y="230" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7EC89A">mypage.html</text>
+<!-- External -->
+<rect x="330" y="330" width="158" height="56" rx="6" fill="var(--paper-deep)" stroke="var(--rule)" stroke-width="1"/>
+<text x="409" y="355" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="var(--ink-mute)">외부 서점</text>
+<text x="409" y="372" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="var(--ink-mute)">교보·YES24·알라딘·리디</text>
+<!-- Edges -->
+<path d="M168,195 C240,195 255,86 330,86" stroke="#B89B54" stroke-width="1.8" fill="none" marker-end="url(#nav0)"/>
+<text x="218" y="148" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#B89B54">🛒 Store link</text>
+<path d="M168,200 C500,200 570,205 600,206" stroke="#B89B54" stroke-width="1.2" fill="none" stroke-dasharray="4,3" marker-end="url(#nav0)"/>
+<text x="368" y="196" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(184,155,84,.7)">Reader Library 링크</text>
+<path d="M89,247 L89,310" stroke="#B89B54" stroke-width="1.5" fill="none" marker-end="url(#nav0)"/>
+<text x="96" y="282" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(184,155,84,.6)">Author Portal 링크</text>
+<path d="M168,352 C240,352 255,100 330,100" stroke="#7A1F2B" stroke-width="1.8" fill="none" marker-end="url(#nav0)"/>
+<text x="192" y="248" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(122,31,43,.7)">🛒 To Store</text>
+<path d="M168,362 C500,362 560,235 600,225" stroke="#7A1F2B" stroke-width="1.2" fill="none" stroke-dasharray="4,3" marker-end="url(#nav0)"/>
+<text x="375" y="376" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(122,31,43,.6)">Reader Library</text>
+<path d="M488,127 C540,127 580,175 600,195" stroke="#1A6FA8" stroke-width="2" fill="none" marker-end="url(#nav0)"/>
+<text x="512" y="162" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#1A6FA8">Post-checkout redirect</text>
+<path d="M488,118 C560,115 598,180 600,200" stroke="#C97C2D" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#nav1)"/>
+<text x="520" y="148" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#C97C2D">⚠ Not logged in</text>
+<path d="M600,215 C560,215 488,128 488,128" stroke="#2D4A3A" stroke-width="1.8" fill="none" marker-end="url(#nav0)"/>
+<text x="506" y="185" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#2D4A3A">Go to Bookstore</text>
+<path d="M409,127 L409,330" stroke="rgba(26,111,168,.3)" stroke-width="1.2" fill="none" stroke-dasharray="4,3" marker-end="url(#nav0)"/>
+<text x="416" y="244" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(26,111,168,.5)">External purchase ↗</text>
+<!-- Legend -->
+<line x1="30" y1="420" x2="65" y2="420" stroke="#6B6B68" stroke-width="1.8"/>
+<text x="70" y="424" font-family="'JetBrains Mono',monospace" font-size="8" fill="var(--ink-mute)">Direct link</text>
+<line x1="170" y1="420" x2="205" y2="420" stroke="#C97C2D" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="210" y="424" font-family="'JetBrains Mono',monospace" font-size="8" fill="var(--ink-mute)">Conditional redirect</text>
+</svg></div>
+</section>
+<section class="sec" id="s5">
+<div class="stag">§ 05 · User Journey</div>
+<div class="stitle">3-Role User Journey Swim Lanes</div>
+<div class="ssub">Typical system usage flows for Admin, Author, and Reader roles visualized as swim lanes.</div>
+<div class="dw"><div class="dh">— User Journey Swim Lanes — Admin / Author / Reader —</div>
+<svg viewBox="0 0 900 500" class="diag" xmlns="http://www.w3.org/2000/svg" style="background:var(--paper-light);padding:18px">
+<!-- Lane headers -->
+<rect x="0" y="0" width="115" height="490" fill="#1C2028" opacity=".95"/>
+<text x="57" y="87" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#B89B54" transform="rotate(-90,57,87)">Admin</text>
+<text x="57" y="253" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(212,190,133,.8)" transform="rotate(-90,57,253)">Author</text>
+<text x="57" y="425" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#7EC89A" transform="rotate(-90,57,425)">Reader</text>
+<!-- Lane dividers -->
+<line x1="115" y1="158" x2="900" y2="158" stroke="var(--rule-soft)" stroke-width="1" stroke-dasharray="5,4"/>
+<line x1="115" y1="318" x2="900" y2="318" stroke="var(--rule-soft)" stroke-width="1" stroke-dasharray="5,4"/>
+<!-- Step labels -->
+<g font-family="'JetBrains Mono',monospace" font-size="8.5" fill="var(--ink-mute)" text-anchor="middle">
+<text x="193" y="16">STEP 1</text><text x="322" y="16">STEP 2</text><text x="451" y="16">STEP 3</text>
+<text x="580" y="16">STEP 4</text><text x="709" y="16">STEP 5</text><text x="838" y="16">STEP 6</text>
+</g>
+<line x1="115" y1="22" x2="900" y2="22" stroke="var(--rule)" stroke-width="1"/>
+<!-- ADMIN ROW -->
+<rect x="128" y="30" width="114" height="114" rx="5" fill="rgba(184,155,84,.1)" stroke="rgba(184,155,84,.25)" stroke-width="1"/>
+<text x="185" y="54" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#B89B54">Dashboard Review</text>
+<text x="185" y="70" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">KPI ×4</text>
+<text x="185" y="84" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Exec Insights</text>
+<text x="185" y="98" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Recent Orders</text>
+<text x="185" y="136" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="var(--ink-mute)">admin-studio.html</text>
+
+<rect x="257" y="30" width="114" height="114" rx="5" fill="rgba(184,155,84,.1)" stroke="rgba(184,155,84,.25)" stroke-width="1"/>
+<text x="314" y="54" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#B89B54">Proposal Evaluation</text>
+<text x="314" y="70" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Author submission</text>
+<text x="314" y="84" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Trigger AI eval</text>
+<text x="314" y="98" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Accept/Reject</text>
+<text x="314" y="136" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#2D4A3A">Claude Sonnet</text>
+
+<rect x="386" y="30" width="114" height="114" rx="5" fill="rgba(184,155,84,.1)" stroke="rgba(184,155,84,.25)" stroke-width="1"/>
+<text x="443" y="54" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#B89B54">Project Setup</text>
+<text x="443" y="70" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Set 6-ch schedule</text>
+<text x="443" y="84" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Save adm_mr_*</text>
+<text x="443" y="98" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Issue author account</text>
+<text x="443" y="136" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#1A6FA8">→ Author Portal</text>
+
+<rect x="515" y="30" width="114" height="114" rx="5" fill="rgba(184,155,84,.1)" stroke="rgba(184,155,84,.25)" stroke-width="1"/>
+<text x="572" y="54" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#B89B54">Book Registration</text>
+<text x="572" y="70" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Enter master data</text>
+<text x="572" y="84" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">ACORN_BOOKS↓</text>
+<text x="572" y="98" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Auto reflects in store</text>
+<text x="572" y="136" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#1A6FA8">→ Bookstore</text>
+
+<rect x="644" y="30" width="114" height="114" rx="5" fill="rgba(184,155,84,.1)" stroke="rgba(184,155,84,.25)" stroke-width="1"/>
+<text x="701" y="54" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#B89B54">Update Channel Status</text>
+<text x="701" y="70" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Milestone complete</text>
+<text x="701" y="84" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Write author note</text>
+<text x="701" y="98" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Author Portal 반영</text>
+<text x="701" y="136" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#7A1F2B">storage event</text>
+
+<rect x="773" y="30" width="114" height="114" rx="5" fill="rgba(184,155,84,.1)" stroke="rgba(184,155,84,.25)" stroke-width="1"/>
+<text x="830" y="54" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#B89B54">Royalty Settlement</text>
+<text x="830" y="70" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Gen quarterly stmt</text>
+<text x="830" y="84" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Approve · Transfer</text>
+<text x="830" y="98" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Notify author</text>
+<text x="830" y="136" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="var(--ink-mute)">ICount ERP</text>
+
+<!-- AUTHOR ROW -->
+<rect x="128" y="168" width="114" height="130" rx="5" fill="rgba(122,31,43,.08)" stroke="rgba(122,31,43,.22)" stroke-width="1"/>
+<text x="185" y="192" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7A1F2B">Portal Login</text>
+<text x="185" y="207" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Email auth</text>
+<text x="185" y="221" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">AUTHOR_SESSION</text>
+<text x="185" y="286" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="var(--ink-mute)">author-portal.html</text>
+
+<rect x="257" y="168" width="243" height="130" rx="5" fill="rgba(122,31,43,.08)" stroke="rgba(122,31,43,.22)" stroke-width="1"/>
+<text x="378" y="192" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7A1F2B">Check Project Status</text>
+<text x="378" y="207" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">My Projects tab</text>
+<text x="378" y="221" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Multi-Revenue 6 channels</text>
+<text x="378" y="235" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">adm_mr_* 읽기</text>
+<text x="378" y="249" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">View pub schedule</text>
+<text x="378" y="286" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#7A1F2B">adm_mr_* ← Admin</text>
+
+<rect x="515" y="168" width="114" height="130" rx="5" fill="rgba(122,31,43,.08)" stroke="rgba(122,31,43,.22)" stroke-width="1"/>
+<text x="572" y="192" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7A1F2B">Publishing Inquiry</text>
+<text x="572" y="207" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Submit new proposal</text>
+<text x="572" y="221" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Fill 4-step form</text>
+<text x="572" y="286" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#B89B54">→ Admin A.2</text>
+
+<rect x="644" y="168" width="243" height="130" rx="5" fill="rgba(122,31,43,.08)" stroke="rgba(122,31,43,.22)" stroke-width="1"/>
+<text x="765" y="192" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7A1F2B">Store Visit · Branding</text>
+<text x="765" y="207" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">🛒 서점에서 보기</text>
+<text x="765" y="221" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">View reader Q&A</text>
+<text x="765" y="235" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Manage author profile</text>
+<text x="765" y="286" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#1A6FA8">→ Bookstore</text>
+
+<!-- READER ROW -->
+<rect x="128" y="326" width="114" height="110" rx="5" fill="rgba(26,111,168,.08)" stroke="rgba(26,111,168,.22)" stroke-width="1"/>
+<text x="185" y="350" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#1A6FA8">Visit Bookstore</text>
+<text x="185" y="365" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Search · Browse</text>
+<text x="185" y="379" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Category filter</text>
+<text x="185" y="426" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#1A6FA8">bookstore.html</text>
+
+<rect x="257" y="326" width="114" height="110" rx="5" fill="rgba(26,111,168,.08)" stroke="rgba(26,111,168,.22)" stroke-width="1"/>
+<text x="314" y="350" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#1A6FA8">Select Book</text>
+<text x="314" y="365" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Review intro · TOC</text>
+<text x="314" y="379" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Choose format</text>
+<text x="314" y="393" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Add to cart</text>
+
+<rect x="386" y="326" width="114" height="110" rx="5" fill="rgba(201,124,45,.1)" stroke="rgba(201,124,45,.28)" stroke-width="1"/>
+<text x="443" y="350" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#C97C2D">Login Check</text>
+<text x="443" y="365" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Check ACORN_USER</text>
+<text x="443" y="379" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Not logged in → MyPage</text>
+<text x="443" y="426" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#C97C2D">⚠ Conditional redirect</text>
+
+<rect x="515" y="326" width="114" height="110" rx="5" fill="rgba(45,74,58,.08)" stroke="rgba(45,74,58,.22)" stroke-width="1"/>
+<text x="572" y="350" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#2D4A3A">Purchase Complete</text>
+<text x="572" y="365" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Save ORDERS</text>
+<text x="572" y="379" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Save LIBRARY</text>
+<text x="572" y="393" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Redirect MyPage</text>
+
+<rect x="644" y="326" width="243" height="110" rx="5" fill="rgba(45,74,58,.08)" stroke="rgba(45,74,58,.22)" stroke-width="1"/>
+<text x="765" y="350" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#2D4A3A">Library · Reader Services</text>
+<text x="765" y="365" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">My Library 확인</text>
+<text x="765" y="379" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Purchases 조회</text>
+<text x="765" y="393" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9.5" fill="var(--ink-soft)">Q&A · Errata</text>
+<text x="765" y="426" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#2D4A3A">mypage.html</text>
+</svg></div>
+</section>
+<section class="sec" id="s6">
+<div class="stag">§ 06 · Purchase → Library Flow</div>
+<div class="stitle">Purchase → Library End-to-End Flow</div>
+<div class="ssub">Full data flow and conditional branches from Bookstore checkout to MyPage library registration.</div>
+<div class="dw"><div class="dh">— Purchase → Library Flow — Solid: Normal · Dashed: Conditional —</div>
+<svg viewBox="0 0 900 290" class="diag" xmlns="http://www.w3.org/2000/svg" style="background:var(--paper-light);padding:22px">
+<defs>
+<marker id="pf0" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#1C2028"/></marker>
+<marker id="pf1" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#C97C2D"/></marker>
+</defs>
+<!-- Step 1: Cart -->
+<rect x="10" y="75" width="112" height="120" rx="6" fill="#0A2035" stroke="rgba(26,111,168,.4)" stroke-width="1"/>
+<text x="66" y="102" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#5BC8F5">STEP 1</text>
+<text x="66" y="120" text-anchor="middle" font-family="'Georgia',serif" font-size="12" fill="white" font-weight="700">Cart</text>
+<text x="66" y="137" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.5)">addToCart()</text>
+<text x="66" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">ACORN_CART</text>
+<text x="66" y="178" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(255,255,255,.3)">bookstore.html</text>
+<path d="M122,135 L158,135" stroke="#1C2028" stroke-width="2" fill="none" marker-end="url(#pf0)"/>
+<!-- Decision: Logged in? -->
+<polygon points="158,110 222,135 158,160 94,135" fill="rgba(201,124,45,.12)" stroke="#C97C2D" stroke-width="1.5"/>
+<text x="158" y="130" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#C97C2D">Logged in?</text>
+<text x="158" y="146" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(201,124,45,.7)">ACORN_USER</text>
+<!-- No → MyPage -->
+<path d="M222,135 L260,135 L260,26 L308,26" stroke="#C97C2D" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#pf1)"/>
+<text x="290" y="20" font-family="'JetBrains Mono',monospace" font-size="8" fill="#C97C2D">No → mypage.html</text>
+<!-- Yes arrow -->
+<path d="M222,135 L258,135" stroke="#1C2028" stroke-width="2" fill="none" marker-end="url(#pf0)"/>
+<text x="240" y="130" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="var(--forest)">예</text>
+<!-- Step 2: checkout() -->
+<rect x="258" y="75" width="112" height="120" rx="6" fill="#0A2035" stroke="rgba(26,111,168,.4)" stroke-width="1"/>
+<text x="314" y="102" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#5BC8F5">STEP 2</text>
+<text x="314" y="120" text-anchor="middle" font-family="'Georgia',serif" font-size="12" fill="white" font-weight="700">Checkout</text>
+<text x="314" y="137" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.5)">checkout()</text>
+<text x="314" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">Generate orderId</text>
+<text x="314" y="167" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.35)">Map items</text>
+<path d="M370,135 L405,135" stroke="#1C2028" stroke-width="2" fill="none" marker-end="url(#pf0)"/>
+<!-- Step 3: Save to DB -->
+<rect x="405" y="75" width="130" height="120" rx="6" fill="#0A1F16" stroke="rgba(45,74,58,.4)" stroke-width="1"/>
+<text x="470" y="102" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#7EC89A">STEP 3</text>
+<text x="470" y="120" text-anchor="middle" font-family="'Georgia',serif" font-size="12" fill="white" font-weight="700">Save to DB</text>
+<text x="470" y="137" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7EC89A">addOrder()</text>
+<text x="470" y="151" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">ACORN_ORDERS</text>
+<text x="470" y="165" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7EC89A">addToLibrary()</text>
+<text x="470" y="179" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">ACORN_LIBRARY</text>
+<path d="M535,135 L570,135" stroke="#1C2028" stroke-width="2" fill="none" marker-end="url(#pf0)"/>
+<!-- Step 4: Clear Cart -->
+<rect x="570" y="75" width="112" height="120" rx="6" fill="#0A2035" stroke="rgba(26,111,168,.4)" stroke-width="1"/>
+<text x="626" y="102" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#5BC8F5">STEP 4</text>
+<text x="626" y="120" text-anchor="middle" font-family="'Georgia',serif" font-size="12" fill="white" font-weight="700">Clear Cart</text>
+<text x="626" y="137" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.5)">clearCart()</text>
+<text x="626" y="152" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">ACORN_CART</text>
+<text x="626" y="167" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.35)">삭제</text>
+<path d="M682,135 L717,135" stroke="#1C2028" stroke-width="2" fill="none" marker-end="url(#pf0)"/>
+<!-- Step 5: MyPage Library -->
+<rect x="717" y="75" width="165" height="120" rx="6" fill="#0A1F16" stroke="rgba(45,74,58,.55)" stroke-width="1.5"/>
+<text x="799" y="102" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#7EC89A">STEP 5</text>
+<text x="799" y="120" text-anchor="middle" font-family="'Georgia',serif" font-size="12" fill="white" font-weight="700">MyPage Library</text>
+<text x="799" y="137" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#7EC89A">mergeOrdersFromDB()</text>
+<text x="799" y="151" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.5)">Purchases 표시</text>
+<text x="799" y="165" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#7EC89A">mergeLibraryFromDB()</text>
+<text x="799" y="179" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.5)">Show library books</text>
+<!-- Note -->
+<text x="450" y="234" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="var(--ink-mute)">Print: ACORN_ORDERS only / Digital (ebook·epub·audio·lecture): both ACORN_ORDERS + ACORN_LIBRARY</text>
+<text x="450" y="252" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="var(--ink-mute)">Admin dashboard: reads ACORN_ORDERS to display recent-orders widget (renderDashOrders())</text>
+</svg></div>
+<div class="call">Conditional checkout: without <code>ACORN_USER</code> payment is blocked. confirm dialog → on agree, saves <code>acorn_pending_checkout='1'</code> then redirects to <code>mypage.html</code>. After login, MyPage detects pending → toast nudge to return to store.</div>
+</section>
+<section class="sec" id="s7">
+<div class="stag">§ 07 · Multi-Revenue Channel Pipeline</div>
+<div class="stitle">Multi-Revenue 6-Channel Pipeline</div>
+<div class="ssub">One Content → 6 Revenue Channels. Admin sets in A.3.6 → Author views real-time in Author Portal.</div>
+<div class="dw"><div class="dh">— One Content Multi-Revenue Pipeline —</div>
+<svg viewBox="0 0 900 480" class="diag" xmlns="http://www.w3.org/2000/svg" style="background:var(--paper-light);padding:18px">
+<defs><marker id="mr0" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="rgba(28,32,40,.4)"/></marker></defs>
+<!-- Source -->
+<rect x="8" y="195" width="98" height="72" rx="6" fill="#1C2028"/>
+<text x="57" y="225" text-anchor="middle" font-family="'Georgia',serif" font-size="13" fill="white" font-weight="700">원고</text>
+<text x="57" y="242" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#B89B54">1 Content</text>
+<text x="57" y="256" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(255,255,255,.4)">저자 Writing</text>
+<!-- Fan arrows -->
+<path d="M106,231 L148,47" stroke="rgba(28,32,40,.3)" stroke-width="1.5" fill="none" marker-end="url(#mr0)"/>
+<path d="M106,228 L148,121" stroke="rgba(28,32,40,.3)" stroke-width="1.5" fill="none" marker-end="url(#mr0)"/>
+<path d="M106,230 L148,195" stroke="rgba(28,32,40,.3)" stroke-width="1.5" fill="none" marker-end="url(#mr0)"/>
+<path d="M106,235 L148,269" stroke="rgba(28,32,40,.3)" stroke-width="1.5" fill="none" marker-end="url(#mr0)"/>
+<path d="M106,242 L148,343" stroke="rgba(28,32,40,.3)" stroke-width="1.5" fill="none" marker-end="url(#mr0)"/>
+<path d="M106,248 L148,417" stroke="rgba(28,32,40,.3)" stroke-width="1.5" fill="none" marker-end="url(#mr0)"/>
+<!-- CH1: Print -->
+<rect x="148" y="22" width="130" height="54" rx="5" fill="#1C2028"/>
+<rect x="148" y="22" width="130" height="3" fill="#B89B54" rx="1"/>
+<text x="213" y="45" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#B89B54">📗 종이책</text>
+<text x="213" y="61" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" fill="rgba(255,255,255,.6)">Royalty 10% · Initial print 2,500 copies</text>
+<rect x="284" y="22" width="604" height="54" rx="5" fill="rgba(184,155,84,.06)" stroke="rgba(184,155,84,.2)" stroke-width="1"/>
+<g font-family="'JetBrains Mono',monospace" font-size="8.5" text-anchor="middle" fill="var(--ink-mute)">
+<text x="330" y="46">Writing</text><text x="405" y="46">Editing</text><text x="480" y="46">Proofing</text><text x="555" y="46">Layout</text><text x="630" y="46">Printing</text><text x="705" y="46">Release</text><text x="840" y="46">Settlement</text>
+</g>
+<rect x="310" y="34" width="32" height="14" rx="3" fill="#2D4A3A"/><text x="326" y="45" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="white">Done</text>
+<rect x="385" y="34" width="32" height="14" rx="3" fill="#7A1F2B"/><text x="401" y="45" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="white">In Progress</text>
+<rect x="458" y="34" width="32" height="14" rx="3" fill="rgba(184,155,84,.3)"/><text x="474" y="45" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#B89B54">Planned</text>
+<rect x="533" y="34" width="32" height="14" rx="3" fill="rgba(184,155,84,.2)"/><text x="549" y="45" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#B89B54">Planned</text>
+<rect x="608" y="34" width="32" height="14" rx="3" fill="rgba(184,155,84,.15)"/><text x="624" y="45" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#B89B54">Planned</text>
+<rect x="678" y="34" width="48" height="14" rx="3" fill="rgba(184,155,84,.1)"/><text x="702" y="45" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#B89B54">2028.01</text>
+<rect x="810" y="34" width="60" height="14" rx="3" fill="rgba(184,155,84,.08)"/><text x="840" y="45" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#B89B54">Next mo. after Q</text>
+<!-- CH2: eBook -->
+<rect x="148" y="96" width="130" height="54" rx="5" fill="#0A2035"/>
+<rect x="148" y="96" width="130" height="3" fill="#1A6FA8" rx="1"/>
+<text x="213" y="119" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#5BC8F5">📱 전자책</text>
+<text x="213" y="135" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" fill="rgba(255,255,255,.6)">Royalty 20% · Kyobo · YES24 · Aladin · Ridi</text>
+<rect x="284" y="96" width="604" height="54" rx="5" fill="rgba(26,111,168,.06)" stroke="rgba(26,111,168,.2)" stroke-width="1"/>
+<text x="586" y="127" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(91,200,245,.75)">원고 확정 → 파일 변환(epub/mobi) → 서점 업로드 → 동시 Release(2028.01.15) → 분기 Settlement</text>
+<text x="586" y="141" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(26,111,168,.6)">adm_mr_ebook  ·  status: planned → converting → uploading → published</text>
+<!-- CH3 ePub -->
+<rect x="148" y="170" width="130" height="54" rx="5" fill="#1A0A2E"/>
+<rect x="148" y="170" width="130" height="3" fill="#8B6FBA" rx="1"/>
+<text x="213" y="193" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#C4A8E8">📖 ePub 3.x</text>
+<text x="213" y="209" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" fill="rgba(255,255,255,.6)">AcornReader · Interactive</text>
+<rect x="284" y="170" width="604" height="54" rx="5" fill="rgba(139,111,186,.06)" stroke="rgba(139,111,186,.2)" stroke-width="1"/>
+<text x="586" y="200" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(196,168,232,.75)">Author submits 9 supplemental items → ePub conversion/QA → AcornReader deployment (2028.01)</text>
+<text x="586" y="215" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(139,111,186,.6)">adm_mr_epub  ·  Author Portal에서 보강자료 제출 In Progress 상황 확인 가능</text>
+<!-- CH4: Audiobook -->
+<rect x="148" y="244" width="130" height="54" rx="5" fill="#1A1505"/>
+<rect x="148" y="244" width="130" height="3" fill="#C97C2D" rx="1"/>
+<text x="213" y="267" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#E8A060">🎧 오디오북</text>
+<text x="213" y="283" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" fill="rgba(255,255,255,.6)">Release 후 판매 검토 후 결정</text>
+<rect x="284" y="244" width="604" height="54" rx="5" fill="rgba(201,124,45,.06)" stroke="rgba(201,124,45,.2)" stroke-width="1"/>
+<text x="586" y="274" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(232,160,96,.75)">Release 결정 → 성우 섭외 → 녹음(2028.03~) → Editing → 밀리·클립·팟빵 출시</text>
+<text x="586" y="289" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(201,124,45,.6)">adm_mr_audio  ·  Release 후 1개월 판매 데이터 기준으로 제작 결정</text>
+<!-- CH5: Course -->
+<rect x="148" y="318" width="130" height="54" rx="5" fill="#0A1E0A"/>
+<rect x="148" y="318" width="130" height="3" fill="#4A8A4A" rx="1"/>
+<text x="213" y="341" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#8ACA8A">🎓 강의</text>
+<text x="213" y="357" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" fill="rgba(255,255,255,.6)">Inflearn · Class101 · Author co-production</text>
+<rect x="284" y="318" width="604" height="54" rx="5" fill="rgba(74,138,74,.06)" stroke="rgba(74,138,74,.2)" stroke-width="1"/>
+<text x="586" y="348" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(138,202,138,.75)">커리큘럼 협의 → 촬영(2028.02~) → Editing·자막 → 플랫폼 업로드 → 출시</text>
+<text x="586" y="363" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(74,138,74,.6)">adm_mr_lecture  ·  Author participation required · Rev-share negotiated separately</text>
+<!-- CH6 KDP -->
+<rect x="148" y="392" width="130" height="54" rx="5" fill="#0A2A1A"/>
+<rect x="148" y="392" width="130" height="3" fill="#2D4A3A" rx="1"/>
+<text x="213" y="415" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#7EC89A">🌏 KDP 글로벌</text>
+<text x="213" y="431" text-anchor="middle" font-family="Pretendard,sans-serif" font-size="9" fill="rgba(255,255,255,.6)">Royalty 70% · 190+ countries simultaneous</text>
+<rect x="284" y="392" width="604" height="54" rx="5" fill="rgba(45,74,58,.08)" stroke="rgba(45,74,58,.25)" stroke-width="1"/>
+<text x="586" y="421" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="rgba(127,200,154,.8)">계약 확정 → 번역(2027.06~) → 저자 감수 → KDP 업로드 → 글로벌 Release → 월별 USD Settlement</text>
+<text x="586" y="436" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(45,74,58,.6)">adm_mr_kdp  ·  K-Book Global 100 program application in parallel</text>
+<!-- sync label -->
+<rect x="8" y="256" width="130" height="22" rx="3" fill="rgba(122,31,43,.15)" stroke="rgba(122,31,43,.3)" stroke-width="1"/>
+<text x="73" y="271" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7A1F2B">Admin → adm_mr_* → Author</text>
+</svg></div>
+</section>
+<section class="sec" id="s8">
+<div class="stag">§ 08 · Permission Matrix</div>
+<div class="stitle">Role-Based Permission Matrix</div>
+<div class="ssub">5 roles × 4 apps, by feature access level. ● Full · △ Limited · — None.</div>
+<table class="pm">
+<thead><tr>
+<th>Feature / Screen</th>
+<th>Admin<br><span style="font-weight:400;opacity:.6">2 directors</span></th>
+<th>Editor<br><span style="font-weight:400;opacity:.6">×7</span></th>
+<th>Designer<br><span style="font-weight:400;opacity:.6">×2</span></th>
+<th>Ops<br><span style="font-weight:400;opacity:.6">×3</span></th>
+<th>Author<br><span style="font-weight:400;opacity:.6">Author Portal</span></th>
+</tr></thead>
+<tbody>
+<tr><td colspan="6" style="background:var(--paper-deep);font-family:var(--m);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase;padding:7px 10px">Admin Studio (admin-studio.html)</td></tr>
+<tr><td>Dashboard KPI · Exec Insights · Recent Orders (ACORN_ORDERS)</td><td class="yes">●</td><td class="yes">●</td><td class="no">—</td><td class="par">△</td><td class="no">—</td></tr>
+<tr><td>Proposal intake · Review · AI evaluation (Claude Sonnet) · Report</td><td class="yes">●</td><td class="yes">●</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+<tr><td>Project Mgmt A.3 (all 6 tabs)</td><td class="yes">●</td><td class="yes">●</td><td class="par">△Files</td><td class="no">—</td><td class="no">—</td></tr>
+<tr><td class="sub">Multi-Revenue channel status config (A.3.6 · adm_mr_* write)</td><td class="yes">●</td><td class="yes">●</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+<tr><td class="sub">File vault upload · download</td><td class="yes">●</td><td class="yes">●</td><td class="yes">●</td><td class="no">—</td><td class="no">—</td></tr>
+<tr><td class="sub">Royalty statement generation · approval</td><td class="yes">●</td><td class="no">—</td><td class="no">—</td><td class="par">△Read</td><td class="no">—</td></tr>
+<tr><td>Sales mgmt · P&L · BEP tracking</td><td class="yes">●</td><td class="yes">●</td><td class="no">—</td><td class="yes">●</td><td class="no">—</td></tr>
+<tr><td>Book register/edit (ACORN_BOOKS write)</td><td class="yes">●</td><td class="yes">●</td><td class="no">—</td><td class="yes">●</td><td class="no">—</td></tr>
+<tr><td>Master data (categories · partners · users)</td><td class="yes">●</td><td class="no">—</td><td class="no">—</td><td class="yes">●</td><td class="no">—</td></tr>
+<tr><td>System settings · Permission mgmt</td><td class="yes">●</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+<tr><td colspan="6" style="background:var(--paper-deep);font-family:var(--m);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase;padding:7px 10px">Author Portal (author-portal.html)</td></tr>
+<tr><td>Dashboard KPI (writing % · royalties · Multi-Revenue)</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">●</td></tr>
+<tr><td>My Projects · Multi-Revenue status (adm_mr_* read)</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">●</td></tr>
+<tr><td>Publishing inquiry intake (4-step form)</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">●</td></tr>
+<tr><td>Author profile · branding mgmt</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">●</td></tr>
+<tr><td colspan="6" style="background:var(--paper-deep);font-family:var(--m);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase;padding:7px 10px">Bookstore · MyPage (Public · Reader)</td></tr>
+<tr><td>Book list · search · detail view</td><td class="yes">●</td><td class="yes">●</td><td class="yes">●</td><td class="yes">●</td><td class="yes">●</td></tr>
+<tr><td>Cart · checkout (ACORN_USER required)</td><td class="yes">●</td><td class="yes">●</td><td class="yes">●</td><td class="yes">●</td><td class="yes">●</td></tr>
+<tr><td>My Library·Purchases (MyPage)</td><td class="yes">●</td><td class="yes">●</td><td class="yes">●</td><td class="yes">●</td><td class="yes">●</td></tr>
+<tr><td>Reader Q&A · errata (MyPage · Bookstore)</td><td class="par">△</td><td class="par">△</td><td class="no">—</td><td class="no">—</td><td class="yes">●</td></tr>
+</tbody>
+</table>
+<div class="call gold">● Full access &nbsp;·&nbsp; △ Limited (own records / read-only) &nbsp;·&nbsp; — No access &nbsp;·&nbsp; Proper server-side RBAC planned for Phase 1</div>
+</section>
+<section class="sec" id="s9">
+<div class="stag">§ 09 · localStorage Schema</div>
+<div class="stitle">Full localStorage Key Schema</div>
+<div class="ssub">Defines the exact type, sample data, and read/write ownership for every shared key.</div>
+<div class="g2">
+<div>
+<h4 class="mini">ACORN_USER — Reader Session</h4>
+<div style="background:var(--ink);padding:13px 15px;border-radius:7px;font-family:var(--m);font-size:11px;color:#7EC89A;line-height:2">
+{<br>&nbsp;&nbsp;<span style="color:#D4BE85">"id"</span>: <span style="color:#f0a0a0">"reader@email.com"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"email"</span>: <span style="color:#f0a0a0">"reader@email.com"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"name"</span>: <span style="color:#f0a0a0">"Reader"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"role"</span>: <span style="color:#f0a0a0">"reader"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"joinDate"</span>: <span style="color:#f0a0a0">"2024.11"</span><br>}
+</div>
+<div style="margin-top:6px;font-size:11px;color:var(--ink-mute)">Write: MyPage login · Delete: doLogout() · Read: Bookstore header & payment auth</div>
+</div>
+<div>
+<h4 class="mini">ACORN_BOOKS — Admin Book Catalog</h4>
+<div style="background:var(--ink);padding:13px 15px;border-radius:7px;font-family:var(--m);font-size:11px;color:#7EC89A;line-height:2">
+[{<br>&nbsp;&nbsp;<span style="color:#D4BE85">"id"</span>: <span style="color:#aad4ff">1</span>, <span style="color:#D4BE85">"title"</span>: <span style="color:#f0a0a0">"LangChain…"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"auth"</span>: <span style="color:#f0a0a0">"Harrison Chase"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"cat"</span>: <span style="color:#f0a0a0">"AI·ML"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"price"</span>: <span style="color:#f0a0a0">"42,000"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"status"</span>: <span style="color:#f0a0a0">"active"</span><br>}]
+</div>
+<div style="margin-top:6px;font-size:11px;color:var(--ink-mute)">Write: bmRegisterBook()/bmSaveEdit() · Init: syncAdminToAcornDB() · Read: Bookstore mergeAdminBooks()</div>
+</div>
+<div>
+<h4 class="mini">ACORN_ORDERS — Purchase History</h4>
+<div style="background:var(--ink);padding:13px 15px;border-radius:7px;font-family:var(--m);font-size:11px;color:#7EC89A;line-height:2">
+[{<br>&nbsp;&nbsp;<span style="color:#D4BE85">"orderId"</span>: <span style="color:#f0a0a0">"ACO-1716512345"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"date"</span>: <span style="color:#f0a0a0">"2026.05.24"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"items"</span>: <span style="color:#aad4ff">[{bookId,title,format,price}]</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"total"</span>: <span style="color:#aad4ff">29400</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"status"</span>: <span style="color:#f0a0a0">"completed"</span><br>}]
+</div>
+<div style="margin-top:6px;font-size:11px;color:var(--ink-mute)">Write: checkout() · Read: mergeOrdersFromDB()/MyPage Purchases · Admin dashboard recent orders</div>
+</div>
+<div>
+<h4 class="mini">ACORN_LIBRARY — Digital Library</h4>
+<div style="background:var(--ink);padding:13px 15px;border-radius:7px;font-family:var(--m);font-size:11px;color:#7EC89A;line-height:2">
+[{<br>&nbsp;&nbsp;<span style="color:#D4BE85">"bookId"</span>: <span style="color:#f0a0a0">"b001"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"format"</span>: <span style="color:#f0a0a0">"epub"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"title"</span>: <span style="color:#f0a0a0">"LangChain…"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"purchasedAt"</span>: <span style="color:#f0a0a0">"2026.05.24"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"progress"</span>: <span style="color:#aad4ff">0</span>, <span style="color:#D4BE85">"orderId"</span>: <span style="color:#f0a0a0">"ACO-…"</span><br>}]
+</div>
+<div style="margin-top:6px;font-size:11px;color:var(--ink-mute)">Write: addToLibrary() digital formats only (dedup) · Read: mergeLibraryFromDB() / MyPage library</div>
+</div>
+<div>
+<h4 class="mini">adm_mr_{ch} — Channel Status (×6)</h4>
+<div style="background:var(--ink);padding:13px 15px;border-radius:7px;font-family:var(--m);font-size:11px;color:#7EC89A;line-height:2">
+{<br>&nbsp;&nbsp;<span style="color:#D4BE85">"status"</span>: <span style="color:#f0a0a0">"writing"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"statusLabel"</span>: <span style="color:#f0a0a0">"Writing"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"note"</span>: <span style="color:#f0a0a0">"Public author note"</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"milestones"</span>: <span style="color:#aad4ff">[{date,label,done}]</span>,<br>&nbsp;&nbsp;<span style="color:#D4BE85">"updatedAt"</span>: <span style="color:#f0a0a0">"2026-05-24"</span><br>}
+</div>
+<div style="margin-top:6px;font-size:11px;color:var(--ink-mute)">ch: paper|ebook|epub|audio|lecture|kdp · Write: mrSave()/Admin A.3.6 · Read: Author Portal storage event</div>
+</div>
+<div>
+<h4 class="mini">ACORN_CART / ACORN_AUTHOR_SESSION</h4>
+<div style="background:var(--ink);padding:13px 15px;border-radius:7px;font-family:var(--m);font-size:11px;color:#7EC89A;line-height:2">
+<span style="color:#D4BE85">ACORN_CART:</span> [{bookId,fmt,price,qty}]<br>
+<span style="color:rgba(255,255,255,.4)">saveCart() / clearCart() / Bookstore R/W</span><br><br>
+<span style="color:#D4BE85">ACORN_AUTHOR_SESSION:</span><br>
+{email,name,role,loginAt}<br>
+<span style="color:rgba(255,255,255,.4)">setAuthorSession() / logoutAuthor()</span>
+</div>
+<div style="margin-top:6px;font-size:11px;color:var(--ink-mute)">Phase 1: CART migrates to server session; AUTHOR_SESSION migrates to JWT</div>
+</div>
+</div>
+</section>
+<section class="sec" id="s10">
+<div class="stag">§ 10 · Roadmap</div>
+<div class="stitle">Development Roadmap — Phase 0 → 3</div>
+<div class="ssub">Migration plan from current single-HTML + localStorage baseline to a full SaaS platform.</div>
+<div class="call forest"><strong>Current Phase 0 (as of 2026.05):</strong> 4 standalone HTML SPAs, 752 KB total. Data persistence: same-browser localStorage only. AI: direct browser call to Anthropic API. Auth: localStorage session. Real-time sync: storage event (same tab). No server.</div>
+<div class="rm" style="margin-top:18px">
+<div class="rmph">
+<div class="rmtag" style="color:var(--burgundy)">Phase 1 · 2026 Q3–Q4</div>
+<h4>Data Persistence<br>+ Real Auth</h4>
+<div class="rmi">Supabase / Firebase realtime DB</div>
+<div class="rmi">JWT-based reader & author auth</div>
+<div class="rmi">Anthropic API server proxy</div>
+<div class="rmi">Multi-device data sync</div>
+<div class="rmi">Email notifications (SendGrid)</div>
+<div class="rmi">Admin SSO / IP allowlist</div>
+<div class="rmi">Real file upload (S3)</div>
+<div class="rmi">Per-author complete data isolation</div>
+</div>
+<div class="rmph" style="background:rgba(184,155,84,.03)">
+<div class="rmtag" style="color:var(--gold)">Phase 2 · 2027 Q1–Q2</div>
+<h4>External System Integration<br>+ REST API</h4>
+<div class="rmi">ICount ERP API automation</div>
+<div class="rmi">Kyobo·YES24 sales data API</div>
+<div class="rmi">Amazon KDP API integration</div>
+<div class="rmi">/api/projects · /api/channels</div>
+<div class="rmi">Admin MFA + server RBAC</div>
+<div class="rmi">K-Book Global 100 Program</div>
+<div class="rmi">AcornReader ePub platform</div>
+<div class="rmi">Author portal white-label</div>
+</div>
+<div class="rmph">
+<div class="rmtag" style="color:var(--forest)">Phase 3 · 2027 Q3+</div>
+<h4>FOLIO SaaS<br>Platformization</h4>
+<div class="rmi">Multi-tenant SaaS (other publishers)</div>
+<div class="rmi">Global simultaneous release automation</div>
+<div class="rmi">Full AI editorial assistant rollout</div>
+<div class="rmi">Personalized reader recommendation engine</div>
+<div class="rmi">Real-time channel revenue dashboard</div>
+<div class="rmi">Author · translator · editor collaboration</div>
+<div class="rmi">Audiobook auto-generation (TTS)</div>
+<div class="rmi">Global partner network</div>
+</div>
+</div>
+<h3 class="sub" style="margin-top:28px">Current Implementation Status</h3>
+<div class="g2">
+<div class="card">
+<h5>✅ Fully Implemented (Phase 0)</h5>
+<ul class="ul">
+<li>Proposal AI evaluation — Claude Sonnet · 45 items / 20 pts</li>
+<li>Multi-Revenue 6-channel mgmt (A.3.6 · adm_mr_*)</li>
+<li>ACORN_DB shared data layer (7 keys)</li>
+<li>Purchase→Library flow (checkout → ORDERS + LIBRARY)</li>
+<li>Admin book registration → auto-reflected in store (ACORN_BOOKS)</li>
+<li>adm_mr_* storage event real-time sync</li>
+<li>Reader login → Bookstore header state update</li>
+<li>4-file mutual navigation links complete</li>
+<li>Conditional checkout + pending_checkout return flow</li>
+<li>Admin dashboard recent-orders widget (ACORN_ORDERS)</li>
+<li>Press release AI generation (Claude Sonnet)</li>
+</ul>
+</div>
+<div class="card">
+<h5>⏳ Planned for Phase 1–2</h5>
+<ul class="ul">
+<li>Real backend DB — multi-device persistence</li>
+<li>Server-side Anthropic API proxy</li>
+<li>Real email/SMS notification dispatch</li>
+<li>Real file upload/storage (S3)</li>
+<li>Password hashing · JWT auth</li>
+<li>Per-author complete data separation</li>
+<li>ICount ERP integration</li>
+<li>KDP API auto-upload</li>
+<li>Kyobo·YES24 sales data ingestion</li>
+<li>Multi-user concurrent edit conflict resolution</li>
+<li>AcornReader full integration</li>
+</ul>
+</div>
+</div>
+</section>
+<footer>
+<span>Acorn 4-System Architecture Document v2.0 · admin-studio · author-portal · acorn-bookstore · mypage</span>
+<span>2026.05.24 · Internal Technical Document · Acorn Publishing</span>
+</footer>
+<script>
+var IDS=['cv','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10'];
+var links=document.querySelectorAll('#fnav a');
+function upNav(){
+  var cur='cv';
+  IDS.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el&&window.scrollY>=el.offsetTop-160) cur=id;
+  });
+  links.forEach(function(a,i){
+    a.classList.toggle('on',i<IDS.length&&'#'+IDS[i]===a.getAttribute('href')&&IDS[i]===cur);
+  });
+}
+window.addEventListener('scroll',upNav,{passive:true});
+upNav();
+</script>
+</body></html>
