@@ -276,7 +276,7 @@ button{cursor:pointer;font-family:var(--sans)}
     </div>
     <div class="hd-nav">
       <button class="hd-nav-btn" onclick="showList()">전체 도서</button>
-      <button class="hd-nav-btn" onclick="location.href='author-portal.html'" title="저자 포털">저자 포털</button>
+      <button class="hd-nav-btn" onclick="(function(){var s=localStorage.getItem('acornon_session');if(!s){localStorage.setItem('acornon_autologin',JSON.stringify({email:'guest@acornpub.co.kr',name:'에이콘 독자',via:'bookstore'}));}location.href='author-portal.html';})()" title="저자 포털">저자 포털</button>
       <button class="hd-nav-btn" onclick="location.href='admin-studio.html'" title="관리자 스튜디오" style="font-size:11px;opacity:.65">Admin Studio</button>
       <button class="hd-nav-btn hd-cart" onclick="toggleCart()">
         🛒 장바구니
